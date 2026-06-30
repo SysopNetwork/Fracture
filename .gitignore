@@ -1,0 +1,68 @@
+# ---------------------------------------------------------------------------
+# Fracture - .gitignore
+# Only files required to build, test, document, or deploy the module belong
+# in the public repository. Everything below is excluded by default.
+# ---------------------------------------------------------------------------
+
+# --- Internal development documents (never publish) ---
+MEMORY.MD
+PROJECT_STATUS.MD
+/Marks Notes/
+/NOTES/
+/SCRATCH/
+/PRIVATE/
+/INTERNAL/
+
+# --- Local tooling / editor assistants (never publish) ---
+CLAUDE.md
+.claude/
+.cursor/
+.cursorrules
+.github/copilot-instructions.md
+
+# --- Credentials / environment-specific config ---
+# Ship *.EXAMPLE templates instead of the real files.
+*.env
+.env
+CONFIG.INI
+*.local
+secrets.*
+
+# --- Visual Studio / MSBuild ---
+.vs/
+[Dd]ebug/
+[Rr]elease/
+[Ww]in32/
+[Xx]86/
+[Bb]in/
+[Oo]bj/
+ipch/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.aps
+*.ncb
+*.opensdf
+*.sdf
+*.cachefile
+*.VC.db
+*.VC.opendb
+*.pdb
+*.idb
+*.ilk
+*.tlog
+*.lastbuildstate
+*.obj
+*.o
+*.exp
+*.log
+
+# --- Build / temp artifacts ---
+*.tmp
+*.temp
+*.bak
+*.swp
+~$*
+Thumbs.db
+desktop.ini

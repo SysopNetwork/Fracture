@@ -1,0 +1,33 @@
+# Normalize line endings: store text as LF in the repository, check out native.
+* text=auto
+
+# Source and documentation are text.
+*.c     text
+*.h     text
+*.md    text
+*.MD    text
+*.txt   text
+*.MSG   text
+*.MDF   text
+*.def   text
+*.DEF   text
+
+# Visual Studio project files use CRLF.
+*.sln       text eol=crlf
+*.vcxproj   text eol=crlf
+*.filters   text eol=crlf
+
+# Binary / runtime artifacts — never normalize.
+*.dll   binary
+*.DLL   binary
+*.lib   binary
+*.LIB   binary
+*.dat   binary
+*.DAT   binary
+*.vir   binary
+*.VIR   binary
+*.mcv   binary
+*.MCV   binary
+*.pdb   binary
+*.png   binary
+*.gif   binary
