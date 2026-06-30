@@ -1,0 +1,6 @@
+; Filename: FRACTURE_EXP.DEF
+LIBRARY FRACTURE.DLL
+; Export alias for the module entry point (Win32 / x86 build).
+; The host calls init__<modname>; the decorated cdecl symbol is _init__fracture.
+EXPORTS
+	_init__fracture=init__fracture	@1

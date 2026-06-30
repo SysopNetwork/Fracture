@@ -1,0 +1,41 @@
+LEVEL4 {Fracture: configurable options}
+
+  If you want Fracture to greet players with a short message as
+  they log on to the BBS, set this option to YES.
+
+WELCOPT {Greet players at logon? YES} B
+
+LEVEL6 {Fracture: module text}
+
+LOGON {[1;36mFracture[0;37m - a living world rebuilt every day.
+[0m} T Logon greeting
+
+MAINMENU {[2J[1;36m
+  ============================================================
+   F R A C T U R E
+  ============================================================
+[0;37m
+  A living world rebuilt every day. Leave your mark before it
+  vanishes.
+
+[1;33m  L [0;37m... Look around (world & camp status)
+[1;33m  X [0;37m... Exit to the BBS
+
+[0;37m  Choose: } T Main menu
+
+SHORTMENU {[0;37m
+  Choose ([1;33mL[0;37m, [1;33mX[0;37m, or [1;33m?[0;37m for menu): } T Short menu
+
+STATUS {[2J[1;36m  World Status[0;37m
+  ------------------------------------------------------------
+  The world is still being forged. Exploration, camp building,
+  research, and the daily world evolution arrive in upcoming
+  updates. Check back as Fracture grows.
+[0m} T World status
+
+EXITMSG {[0;37m
+  Safe travels, [1;33m%s[0;37m. The world will have changed when you return.
+[0m} T Exit message
+
+INVALID {[1;31m  That is not a valid option.[0;37m
+} T Invalid selection

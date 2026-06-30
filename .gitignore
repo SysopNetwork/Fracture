@@ -58,6 +58,17 @@ ipch/
 *.exp
 *.log
 
+# --- Local machine SDK path (ship MBBSSDK.props.example instead) ---
+MBBSSDK.props
+
+# --- Build output (keep the BUILD/ folder, ignore its contents) ---
+/BUILD/*
+!/BUILD/.gitkeep
+
+# --- Galacticomm / MBBS runtime + tool output (crash dumps, catalogs) ---
+GAL*.OUT
+*.OUT
+
 # --- Build / temp artifacts ---
 *.tmp
 *.temp
