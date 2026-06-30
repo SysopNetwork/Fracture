@@ -107,12 +107,14 @@
     <ClInclude Include="PLAYER.H" />
     <ClInclude Include="WORLD.H" />
     <ClInclude Include="RESOURCE.H" />
+    <ClInclude Include="CAMP.H" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FRACTURE.C" />
     <ClCompile Include="PLAYER.C" />
     <ClCompile Include="WORLD.C" />
     <ClCompile Include="RESOURCE.C" />
+    <ClCompile Include="CAMP.C" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="FRACTURE.rc" />

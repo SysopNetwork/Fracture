@@ -24,6 +24,7 @@
 #include "PLAYER.H"
 #include "WORLD.H"
 #include "RESOURCE.H"
+#include "CAMP.H"
 
 /* ---- forward declarations -------------------------------------------- */
 GBOOL user_logon(VOID);              /* per-user logon supplemental routine  */
@@ -32,6 +33,8 @@ VOID  user_deleted(CHAR *userid);    /* delete-account routine               */
 VOID  do_move(struct fracplyr *p, INT dx, INT dy, const CHAR *dir);
 VOID  do_search(struct fracplyr *p); /* search the current tile              */
 VOID  do_look(struct fracplyr *p);   /* show the local map and tile          */
+VOID  do_camp(struct fracplyr *p);   /* show the camp and its next upgrade   */
+VOID  do_upgrade(struct fracplyr *p);/* spend resources to upgrade the camp  */
 VOID  system_shutdown(VOID);         /* finish-up (system shutdown) routine  */
 VOID  end_fracture(VOID);            /* empty marker to aid crash analysis   */
 
@@ -207,14 +210,78 @@ do_search(struct fracplyr *p)
 
     res_yield(t.terrain, &rtype, &ramt);
     if (ramt > 0) {
+        LONG cap    = camp_storage(p->camplvl);
+        LONG before = p->res[rtype];
         p->res[rtype] += ramt;
-        prfmsg(GATHER, ramt, res_name(rtype));
+        if (p->res[rtype] > cap)
+            p->res[rtype] = cap;          /* camp storage is the cap        */
+        if (p->res[rtype] > before)
+            prfmsg(GATHER, (INT)(p->res[rtype] - before), res_name(rtype));
+        else
+            prfmsg(STORFUL);              /* already at capacity            */
     }
     else {
         prfmsg(EXPNADA);
     }
 
     pl_write(p);
+}
+
+/* ---------------------------------------------------------------------- *
+ * do_camp                                                                *
+ *                                                                        *
+ * Show the player's camp: its tier, location, and storage capacity, then *
+ * either the cost of the next upgrade or a note that it is fully built.   *
+ * ---------------------------------------------------------------------- */
+VOID EXPORT
+do_camp(struct fracplyr *p)
+{
+    LONG cost[RES_COUNT];
+
+    prfmsg(CAMPVW, camp_name(p->camplvl), (INT)p->campx, (INT)p->campy,
+           camp_storage(p->camplvl));
+
+    if (camp_cost(p->camplvl, cost))
+        prfmsg(CAMPUPC, camp_name(p->camplvl + 1),
+               cost[RES_WOOD], cost[RES_STONE], cost[RES_METAL]);
+    else
+        prfmsg(CAMPMAX);
+}
+
+/* ---------------------------------------------------------------------- *
+ * do_upgrade                                                             *
+ *                                                                        *
+ * Upgrade the camp to the next tier if the player can pay for it. The    *
+ * cost is deducted, the tier rises, and the building project earns Fame. *
+ * ---------------------------------------------------------------------- */
+VOID EXPORT
+do_upgrade(struct fracplyr *p)
+{
+    LONG cost[RES_COUNT];
+    INT  i;
+    INT  gain;
+
+    if (!camp_cost(p->camplvl, cost)) {
+        prfmsg(CAMPMAX);
+        return;
+    }
+
+    for (i = 0; i < RES_COUNT; i++) {
+        if (p->res[i] < cost[i]) {
+            prfmsg(CANTAFF);
+            return;
+        }
+    }
+
+    for (i = 0; i < RES_COUNT; i++)
+        p->res[i] -= cost[i];
+
+    p->camplvl++;
+    gain = 10 * (INT)p->camplvl;          /* building projects earn Fame    */
+    p->fame += gain;
+    pl_write(p);
+
+    prfmsg(CAMPUP, camp_name(p->camplvl), gain);
 }
 
 /* ---------------------------------------------------------------------- *
@@ -235,8 +302,12 @@ module_main(VOID)
     isnew = pl_ensure(usaptr->userid, &me, daily_ap);
 
     if (!me.started) {
+        /* place the player and found their camp at the center of the map */
         me.posx    = (UCHAR)(wld_size() / 2);
         me.posy    = (UCHAR)(wld_size() / 2);
+        me.campx   = me.posx;
+        me.campy   = me.posy;
+        me.camplvl = 0;                  /* start with a Tent              */
         me.started = 1;
         pl_write(&me);
     }
@@ -280,9 +351,16 @@ module_main(VOID)
         else if (sameas(margv[0], "l")) {
             do_look(&me);
         }
+        else if (sameas(margv[0], "c")) {
+            do_camp(&me);
+        }
+        else if (sameas(margv[0], "u")) {
+            do_upgrade(&me);
+        }
         else if (sameas(margv[0], "t")) {
             prfmsg(STATUS, me.userid, me.fame, me.actpts,
                    me.explores, me.discoveries, (INT)me.posx, (INT)me.posy,
+                   camp_name(me.camplvl), camp_storage(me.camplvl),
                    me.res[RES_WOOD], me.res[RES_STONE], me.res[RES_METAL],
                    me.res[RES_FOOD], me.res[RES_WATER]);
         }

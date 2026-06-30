@@ -27,8 +27,12 @@ struct fracplyr {                /* one persistent player record             */
     UCHAR  posx;               /*   current map column (0..world size-1)   */
     UCHAR  posy;               /*   current map row    (0..world size-1)   */
     UCHAR  started;            /*   has the start position been placed?     */
-    UCHAR  pad;                /*   reserved (keeps the record even)        */
+    UCHAR  camplvl;            /*   camp tier (0..CAMP_MAXLVL)             */
     LONG   res[RES_COUNT];     /*   gathered resources, indexed by RES_*    */
+    UCHAR  campx;              /*   camp home tile column                   */
+    UCHAR  campy;              /*   camp home tile row                      */
+    UCHAR  pad1;               /*   reserved (keeps the record even)        */
+    UCHAR  pad2;               /*   reserved                                */
 };
 
 VOID  pl_open(VOID);            /* open the player file, creating it if new  */

@@ -20,3 +20,9 @@
 #define LOOKHD     17   /* T  - local view header (%d x, %d y, %s terrain) */
 #define LEGEND     18   /* T  - local map legend                           */
 #define GATHER     19   /* T  - resources gathered (%d amount, %s name)    */
+#define CAMPVW     20   /* T  - camp view (%s tier, %d x, %d y, %ld store) */
+#define CAMPUPC    21   /* T  - next upgrade cost (%s, %ld, %ld, %ld)      */
+#define CAMPMAX    22   /* T  - camp fully upgraded                        */
+#define CAMPUP     23   /* T  - upgrade complete (%s tier, +%d fame)       */
+#define CANTAFF    24   /* T  - cannot afford the upgrade                  */
+#define STORFUL    25   /* T  - storage full, gathered nothing            */

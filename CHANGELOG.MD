@@ -50,3 +50,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   Metal, Food, Water) gathered by searching tiles. Each terrain has a
   characteristic yield; counts are kept per player and shown on the status
   screen. ADR 0004 records the resource model.
+- Camp system (`CAMP.C`/`.H`): each player has one camp, founded at the map
+  center, that upgrades through six tiers (Tent → Cabin → Outpost → Settlement →
+  Fort → Citadel). The camp tier sets per-resource storage capacity; gathering is
+  capped to it. A camp screen (**C**) shows the tier, location, capacity, and the
+  next upgrade cost; **U** spends resources to build the next tier and awards
+  Fame. Status shows the current camp and storage cap. ADR 0005 records the camp
+  and storage model.

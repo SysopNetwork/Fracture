@@ -31,13 +31,14 @@ MAINMEN {[2J[1;36m
 [1;33m  N S E W [0;37m... Travel north, south, east, west (1 AP)
 [1;33m  R       [0;37m... Search the ground where you stand (1 AP)
 [1;33m  L       [0;37m... Look around (local map)
+[1;33m  C       [0;37m... Camp (view and upgrade your home base)
 [1;33m  T       [0;37m... Explorer status
 [1;33m  X       [0;37m... Exit to the BBS
 
 [0;37m  Choose: } T Main menu
 
 SHORTM {[0;37m
-  Move ([1;33mN S E W[0;37m), [1;33mR[0;37mearch, [1;33mL[0;37mook, s[1;33mT[0;37matus, e[1;33mX[0;37mit, or [1;33m?[0;37m: } T Short menu
+  Move ([1;33mN S E W[0;37m), [1;33mR[0;37mearch, [1;33mL[0;37mook, [1;33mC[0;37mamp, s[1;33mT[0;37matus, e[1;33mX[0;37mit, or [1;33m?[0;37m: } T Short menu
 
 STATUS {[2J[1;36m  Explorer Status[0;37m
   ------------------------------------------------------------
@@ -46,6 +47,7 @@ STATUS {[2J[1;36m  Explorer Status[0;37m
    Action Pts  : [1;32m%d[0;37m remaining today
    Explorations: %ld     Discoveries: %ld
    Location    : (%d, %d)
+   Camp        : [1;37m%s[0;37m  (storage %ld each)
   ------------------------------------------------------------
    [1;37mResources[0;37m  Wood %ld  Stone %ld  Metal %ld  Food %ld  Water %ld
   ------------------------------------------------------------
@@ -61,6 +63,7 @@ INVALID {[1;31m  That is not a valid option.[0;37m
 FIRSTM {[2J[1;36m  Welcome, explorer.[0;37m
   A fractured world stretches out before you, rebuilt a little
   each day. Travel it, chart new ground, and earn your Fame.
+  Your camp stands at the center of the map - build it up.
 [0m} T First-time welcome
 
 NOAP {[1;31m  You are out of Action Points for today.[0;37m
@@ -88,3 +91,27 @@ LEGEND {[0;37m
 
 GATHER {[0;37m  You gather [1;32m%d[0;37m %s.
 } T Resources gathered
+
+CAMPVW {[2J[1;36m  Your Camp[0;37m
+  ------------------------------------------------------------
+   Type     : [1;37m%s[0;37m
+   Location : (%d, %d)
+   Storage  : %ld of each resource
+  ------------------------------------------------------------
+} T Camp view
+
+CAMPUPC {[0;37m  Upgrade to [1;37m%s[0;37m costs [1;33m%ld[0;37m Wood, [1;33m%ld[0;37m Stone, [1;33m%ld[0;37m Metal.
+  Press [1;33mU[0;37m to build it.
+[0m} T Camp upgrade cost
+
+CAMPMAX {[1;35m  Your camp is fully built - a mighty Citadel.[0;37m
+[0m} T Camp at max
+
+CAMPUP {[1;35m  CAMP UPGRADED![0;37m Your camp is now a [1;37m%s[0;37m. [1;33m(+%d Fame)[0;37m
+} T Camp upgraded
+
+CANTAFF {[1;31m  You do not have the resources for that upgrade yet.[0;37m
+} T Cannot afford
+
+STORFUL {[1;31m  Your camp storage is full - make room by upgrading it.[0;37m
+} T Storage full
