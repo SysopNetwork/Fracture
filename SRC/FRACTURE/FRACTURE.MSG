@@ -11,8 +11,10 @@ WELCOPT {Greet players at logon? YES} B
 
 DAYAP {Action Points granted to each player per day? 20} N 1 200
 
- The size of the world, in tiles, along each edge. Takes effect
- only when the world is first generated.
+ The size of the world, in tiles, along each edge. The world is
+ first generated at this size. Changing it later resizes the
+ playable area on the next launch; any player left outside the new
+ bounds is brought home to their camp.
 
 WLDSIZ {World size (tiles per edge)? 40} N 8 64
 

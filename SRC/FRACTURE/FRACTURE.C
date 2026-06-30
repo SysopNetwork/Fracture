@@ -337,6 +337,23 @@ module_main(VOID)
         me.started = 1;
         pl_write(&me);
     }
+    else if (me.posx  >= wld_size() || me.posy  >= wld_size() ||
+             me.campx >= wld_size() || me.campy >= wld_size()) {
+        /* The player (or their camp) is outside the current world bounds -  *
+         * this happens when the sysop changes the world size after a player *
+         * has started. Bring them home: re-found an out-of-bounds camp at   *
+         * the map center, then place the player on their (now valid) camp.  */
+        UCHAR ctr = (UCHAR)(wld_size() / 2);
+        if (me.campx >= wld_size() || me.campy >= wld_size()) {
+            me.campx = ctr;
+            me.campy = ctr;
+        }
+        if (me.posx >= wld_size() || me.posy >= wld_size()) {
+            me.posx = me.campx;
+            me.posy = me.campy;
+        }
+        pl_write(&me);
+    }
 
     switch (usrptr->substt) {
     case 0:

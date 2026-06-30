@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- A player whose stored position (or camp) fell outside the current world
+  bounds — which happens when the world size changes after they have started —
+  was stranded: the local map rendered blank and movement was blocked, though
+  other actions still worked. The main routine now brings such a player home
+  (re-founding an out-of-bounds camp at the map center) on entry. The `WLDSIZ`
+  help text was corrected to describe how changing the size affects an existing
+  world.
+
 ### Added
 - Initial project scaffolding: repository directory structure (`SRC/`, `DIST/`,
   `DOCS/`, `DOCS/ADR/`, `TESTS/`, `TOOLS/`, `BUILD/`).
