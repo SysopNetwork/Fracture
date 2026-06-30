@@ -448,7 +448,9 @@ VOID EXPORT
 world_midnight(VOID)
 {
     INT changed = wld_evolve(regen_pct);
-    shocst("Fracture", "World evolution: %d unexplored tile(s) regenerated.",
+    /* summary <= 32 chars, detail <= 63 (count keeps it verifiable)        */
+    shocst("Fracture reshuffled the world",
+           "%d unexplored tile(s) reborn in the dark while you slept.",
            changed);
 }
 

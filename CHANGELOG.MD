@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - The boot-time audit-trail entry now has personality: the console summary reads
   `Fracture's here. Act impressed.` with detail
   `Fracture v1.0.0 just joined the chat! Hold my juicebox.` (was just `Fracture`).
+- The midnight world-evolution audit entry got the same treatment: summary
+  `Fracture reshuffled the world`, detail
+  `N unexplored tile(s) reborn in the dark while you slept.` (the count keeps it
+  verifiable).
 
 ### Fixed
 - The first-time welcome (`FIRSTM`) was being wiped immediately by the main
