@@ -25,6 +25,7 @@
 #include "WORLD.H"
 #include "RESOURCE.H"
 #include "CAMP.H"
+#include "HISTORY.H"
 
 /* ---- forward declarations -------------------------------------------- */
 GBOOL user_logon(VOID);              /* per-user logon supplemental routine  */
@@ -35,6 +36,7 @@ VOID  do_search(struct fracplyr *p); /* search the current tile              */
 VOID  do_look(struct fracplyr *p);   /* show the local map and tile          */
 VOID  do_camp(struct fracplyr *p);   /* show the camp and its next upgrade   */
 VOID  do_upgrade(struct fracplyr *p);/* spend resources to upgrade the camp  */
+VOID  do_news(VOID);                 /* show the server-wide news chronicle  */
 VOID  system_shutdown(VOID);         /* finish-up (system shutdown) routine  */
 VOID  end_fracture(VOID);            /* empty marker to aid crash analysis   */
 
@@ -78,6 +80,7 @@ init__fracture(VOID)
 
     pl_open();                       /* persistent players                   */
     wld_open(world_sz);              /* the map (generated on first run)     */
+    hist_open();                     /* the shared server chronicle          */
 
     shocst("Fracture", "Loaded v1.0.0 - Copyright (C) 2026 SysopNetwork.com");
 }
@@ -206,6 +209,9 @@ do_search(struct fracplyr *p)
         gain = (INT)lngrnd(8, 20);
         p->fame += gain;
         prfmsg(NEWTILE, wld_name(t.terrain), gain);
+        /* the tile is shared, so this player is its first discoverer */
+        hist_add(HE_DISCOVER, p->userid, t.terrain,
+                 (INT)p->posx, (INT)p->posy);
     }
 
     res_yield(t.terrain, &rtype, &ramt);
@@ -282,6 +288,22 @@ do_upgrade(struct fracplyr *p)
     pl_write(p);
 
     prfmsg(CAMPUP, camp_name(p->camplvl), gain);
+    hist_add(HE_BUILD, p->userid, p->camplvl, (INT)p->campx, (INT)p->campy);
+}
+
+/* ---------------------------------------------------------------------- *
+ * do_news                                                                *
+ *                                                                        *
+ * Show the server-wide chronicle: the most recent discoveries and        *
+ * building projects from every player, newest first. This is the shared  *
+ * "living world" view that makes the server feel inhabited.              *
+ * ---------------------------------------------------------------------- */
+#define NEWSMAX 12               /* most recent entries shown in the news    */
+
+VOID EXPORT
+do_news(VOID)
+{
+    hist_news(NEWSMAX);
 }
 
 /* ---------------------------------------------------------------------- *
@@ -357,6 +379,9 @@ module_main(VOID)
         else if (sameas(margv[0], "u")) {
             do_upgrade(&me);
         }
+        else if (sameas(margv[0], "h")) {
+            do_news();
+        }
         else if (sameas(margv[0], "t")) {
             prfmsg(STATUS, me.userid, me.fame, me.actpts,
                    me.explores, me.discoveries, (INT)me.posx, (INT)me.posy,
@@ -393,6 +418,7 @@ system_shutdown(VOID)
 {
     wld_close();
     pl_close();
+    hist_close();
     clsmsg(fracmb);
 }
 

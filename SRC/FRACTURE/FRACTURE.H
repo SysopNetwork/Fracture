@@ -26,3 +26,9 @@
 #define CAMPUP     23   /* T  - upgrade complete (%s tier, +%d fame)       */
 #define CANTAFF    24   /* T  - cannot afford the upgrade                  */
 #define STORFUL    25   /* T  - storage full, gathered nothing            */
+#define NEWSHDR    26   /* T  - news chronicle header                     */
+#define NEWSDSC    27   /* T  - news line: discovery (%s date, %s who,    */
+                        /*      %s terrain, %d x, %d y)                    */
+#define NEWSBLD    28   /* T  - news line: build (%s date, %s who, %s tier)*/
+#define NEWSNON    29   /* T  - news: the chronicle is empty              */
+#define NEWSFTR    30   /* T  - news chronicle footer                     */

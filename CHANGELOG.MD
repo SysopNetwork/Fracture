@@ -57,3 +57,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   next upgrade cost; **U** spends resources to build the next tier and awards
   Fame. Status shows the current camp and storage cap. ADR 0005 records the camp
   and storage model.
+- Server history and daily news (`HISTORY.C`/`.H`): a permanent, server-wide
+  chronicle in `FRACHIST.DAT` (Btrieve, append-only). Charting an unexplored tile
+  (a server-wide first discovery) and raising a camp to a new tier are recorded
+  for every player. A news view (**H**) shows the most recent events newest-first,
+  making the shared world feel inhabited. ADR 0006 records the history and news
+  model.
