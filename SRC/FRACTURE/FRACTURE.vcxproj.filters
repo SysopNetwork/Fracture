@@ -27,6 +27,9 @@
     <ClInclude Include="WORLD.H">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="RESOURCE.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FRACTURE.C">
@@ -36,6 +39,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="WORLD.C">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RESOURCE.C">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

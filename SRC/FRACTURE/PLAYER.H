@@ -15,6 +15,7 @@
 #define FRACTURE_PLAYER_H
 
 #include "gcomm.h"
+#include "RESOURCE.H"
 
 struct fracplyr {                /* one persistent player record             */
     CHAR   userid[UIDSIZ];       /*   key 0: BBS user-id                      */
@@ -27,6 +28,7 @@ struct fracplyr {                /* one persistent player record             */
     UCHAR  posy;               /*   current map row    (0..world size-1)   */
     UCHAR  started;            /*   has the start position been placed?     */
     UCHAR  pad;                /*   reserved (keeps the record even)        */
+    LONG   res[RES_COUNT];     /*   gathered resources, indexed by RES_*    */
 };
 
 VOID  pl_open(VOID);            /* open the player file, creating it if new  */

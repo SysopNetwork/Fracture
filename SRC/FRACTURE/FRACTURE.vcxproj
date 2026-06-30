@@ -106,11 +106,13 @@
     <ClInclude Include="FRACTURE.H" />
     <ClInclude Include="PLAYER.H" />
     <ClInclude Include="WORLD.H" />
+    <ClInclude Include="RESOURCE.H" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FRACTURE.C" />
     <ClCompile Include="PLAYER.C" />
     <ClCompile Include="WORLD.C" />
+    <ClCompile Include="RESOURCE.C" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="FRACTURE.rc" />

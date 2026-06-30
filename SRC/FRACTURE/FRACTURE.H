@@ -13,10 +13,10 @@
 #define INVALID    10   /* T  - invalid menu selection                     */
 #define FIRSTM     11   /* T  - greeting for a brand-new explorer          */
 #define NOAP       12   /* T  - out of Action Points for today             */
-#define EXPNADA    13   /* T  - search outcome: nothing found              */
-#define EXPRES     14   /* T  - search outcome: minor find (+%d fame)      */
-#define NEWTILE    15   /* T  - search outcome: charted new tile (%s, +%d) */
-#define EDGE       16   /* T  - blocked at the edge of the world           */
-#define MOVED      17   /* T  - travel confirmation (%s direction)         */
-#define LOOKHD     18   /* T  - local view header (%d x, %d y, %s terrain) */
-#define LEGEND     19   /* T  - local map legend                           */
+#define EXPNADA    13   /* T  - search outcome: nothing gathered           */
+#define NEWTILE    14   /* T  - search outcome: charted new tile (%s, +%d) */
+#define EDGE       15   /* T  - blocked at the edge of the world           */
+#define MOVED      16   /* T  - travel confirmation (%s direction)         */
+#define LOOKHD     17   /* T  - local view header (%d x, %d y, %s terrain) */
+#define LEGEND     18   /* T  - local map legend                           */
+#define GATHER     19   /* T  - resources gathered (%d amount, %s name)    */

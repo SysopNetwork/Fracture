@@ -46,3 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   terrain glyphs, unexplored tiles, and a legend. Status (**T**) now shows the
   player's coordinates.
 - ADR 0003: the world map model (coordinate packing, storage, generation).
+- Resources (`RESOURCE.C`/`.H`): a core set of five materials (Wood, Stone,
+  Metal, Food, Water) gathered by searching tiles. Each terrain has a
+  characteristic yield; counts are kept per player and shown on the status
+  screen. ADR 0004 records the resource model.

@@ -23,6 +23,7 @@
 #include "FRACTURE.H"
 #include "PLAYER.H"
 #include "WORLD.H"
+#include "RESOURCE.H"
 
 /* ---- forward declarations -------------------------------------------- */
 GBOOL user_logon(VOID);              /* per-user logon supplemental routine  */
@@ -176,14 +177,15 @@ do_move(struct fracplyr *p, INT dx, INT dy, const CHAR *dir)
  *                                                                        *
  * Spend one Action Point searching the current tile. Charting a tile for *
  * the first time is the big payoff (it reveals the terrain and awards    *
- * Fame); searching ground already charted yields the occasional minor    *
- * find. Outcomes favor success, per the design.                          *
+ * Fame). Every search then gathers whatever the terrain yields, so the   *
+ * land is a renewable source of materials.                               *
  * ---------------------------------------------------------------------- */
 VOID EXPORT
 do_search(struct fracplyr *p)
 {
     struct fractile t;
     INT gain;
+    INT rtype, ramt;
 
     if (p->actpts <= 0) {
         prfmsg(NOAP);
@@ -202,16 +204,14 @@ do_search(struct fracplyr *p)
         p->fame += gain;
         prfmsg(NEWTILE, wld_name(t.terrain), gain);
     }
+
+    res_yield(t.terrain, &rtype, &ramt);
+    if (ramt > 0) {
+        p->res[rtype] += ramt;
+        prfmsg(GATHER, ramt, res_name(rtype));
+    }
     else {
-        INT roll = (INT)lngrnd(1, 100);
-        if (roll <= 20) {
-            prfmsg(EXPNADA);
-        }
-        else {
-            gain = (INT)lngrnd(1, 3);
-            p->fame += gain;
-            prfmsg(EXPRES, gain);
-        }
+        prfmsg(EXPNADA);
     }
 
     pl_write(p);
@@ -282,7 +282,9 @@ module_main(VOID)
         }
         else if (sameas(margv[0], "t")) {
             prfmsg(STATUS, me.userid, me.fame, me.actpts,
-                   me.explores, me.discoveries, (INT)me.posx, (INT)me.posy);
+                   me.explores, me.discoveries, (INT)me.posx, (INT)me.posy,
+                   me.res[RES_WOOD], me.res[RES_STONE], me.res[RES_METAL],
+                   me.res[RES_FOOD], me.res[RES_WATER]);
         }
         else {
             prfmsg(INVALID);
