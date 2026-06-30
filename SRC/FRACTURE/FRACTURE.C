@@ -101,10 +101,10 @@ module_main(VOID)
     switch (usrptr->substt) {
     case 0:
         /* first entry: show the main menu and advance the state */
-        prfmsg(usrptr->substt = MAINMENU);
+        prfmsg(usrptr->substt = MAINMEN);
         break;
 
-    case MAINMENU:
+    case MAINMEN:
         if (sameas(margv[0], "x")) {
             /* leave the module */
             prfmsg(EXITMSG, usaptr->userid);
@@ -113,10 +113,10 @@ module_main(VOID)
             return 0;
         }
         else if (sameas(margv[0], "\0") || sameas(margv[0], "")) {
-            prfmsg(SHORTMENU);          /* empty input -> short prompt        */
+            prfmsg(SHORTM);          /* empty input -> short prompt        */
         }
         else if (sameas(margv[0], "?")) {
-            prfmsg(MAINMENU);           /* redisplay the full menu            */
+            prfmsg(MAINMEN);           /* redisplay the full menu            */
             break;
         }
         else if (sameas(margv[0], "l")) {
@@ -125,7 +125,7 @@ module_main(VOID)
         else {
             prfmsg(INVALID);            /* unrecognized selection             */
         }
-        prfmsg(SHORTMENU);
+        prfmsg(SHORTM);
         break;
     }
 
