@@ -7,8 +7,10 @@
 *.md    text
 *.MD    text
 *.txt   text
-*.MSG   text
-*.MDF   text
+
+# BBS-consumed data files must stay CRLF (the MBBS CNF parser requires it).
+*.MSG   text eol=crlf
+*.MDF   text eol=crlf
 *.def   text
 *.DEF   text
 
