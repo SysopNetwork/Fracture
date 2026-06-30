@@ -86,7 +86,9 @@ init__fracture(VOID)
     wld_open(world_sz);              /* the map (generated on first run)     */
     hist_open();                     /* the shared server chronicle          */
 
-    shocst("Fracture", "Fracture v1.0.0 just joined the chat! Hold my juicebox.");
+    /* summary <= 32 chars, detail <= 63 - both show on the audit trail     */
+    shocst("Fracture's here. Act impressed.",
+           "Fracture v1.0.0 just joined the chat! Hold my juicebox.");
 }
 
 /* ---------------------------------------------------------------------- *

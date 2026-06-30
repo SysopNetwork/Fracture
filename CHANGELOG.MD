@@ -8,8 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Changed
-- The boot-time audit-trail line now reads
-  `Fracture v1.0.0 just joined the chat! Hold my juicebox.`
+- The boot-time audit-trail entry now has personality: the console summary reads
+  `Fracture's here. Act impressed.` with detail
+  `Fracture v1.0.0 just joined the chat! Hold my juicebox.` (was just `Fracture`).
 
 ### Fixed
 - The first-time welcome (`FIRSTM`) was being wiped immediately by the main
