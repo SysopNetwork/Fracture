@@ -14,8 +14,8 @@ Online user manual:
 DLLs: FRACTURE
 MSGs: FRACTURE
 
-Btrieve page size: 0
-Btrieve files:     0
+Btrieve page size: 1024
+Btrieve files:     1
 
 Cleanup:
 

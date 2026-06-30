@@ -21,5 +21,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   file, reads a sysop logon-greeting option, and runs a keyboard-driven main menu
   (Look / Exit) as the foundation for the game systems to come.
 - Module support files: `FRACTURE.MSG` (ANSI message source), `FRACTURE.MDF`
-  (module definition, no Btrieve files yet), `FRACTURE_EXP.DEF` (export alias),
-  and `FRACTURE.rc` (Windows version resource: product, version, copyright).
+  (module definition), `FRACTURE_EXP.DEF` (export alias), and `FRACTURE.rc`
+  (Windows version resource: product, version, copyright).
+- Persistent player records (`PLAYER.C`/`.H`): one Btrieve record per player in
+  `FRACTURE.DAT`, keyed on the user-id and accessed via the DFA API. The data
+  file is created programmatically on first run (no shipped virgin file).
+- Core daily loop: each player receives a sysop-configurable number of Action
+  Points per day (`DAYAP` option, default 20), refilled lazily on the first
+  visit of a new day.
+- First real action — **Explore**: spends one Action Point on a weighted-random
+  outcome (mostly minor finds, occasional notable discoveries) that awards Fame
+  and updates lifetime stats. A live **status** screen shows name, Fame, Action
+  Points remaining, and exploration/discovery totals.
+- ADR 0002: player record shape and the lazy daily Action Point reset.

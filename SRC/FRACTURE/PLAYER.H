@@ -1,0 +1,39 @@
+/*****************************************************************************
+ *   PLAYER.H                                            Fracture - Players   *
+ *                                                                           *
+ *   Persistent per-player state and the routines that store it. One record  *
+ *   exists per BBS user who has entered Fracture, held in FRACTURE.DAT (a    *
+ *   Btrieve file keyed on the user-id) and accessed through the DFA API.     *
+ *                                                                           *
+ *   Keep the record lean; new per-player systems (camp, resources,          *
+ *   research) extend this structure as they are built.                      *
+ *                                                                           *
+ *   Copyright (C) 2026 Sysop Network.  All Rights Reserved.                  *
+ *****************************************************************************/
+
+#ifndef FRACTURE_PLAYER_H
+#define FRACTURE_PLAYER_H
+
+#include "gcomm.h"
+
+struct fracplyr {                /* one persistent player record             */
+    CHAR   userid[UIDSIZ];       /*   key 0: BBS user-id                      */
+    USHORT lastday;             /*   packed today() of the last AP refill   */
+    INT    actpts;              /*   Action Points remaining today          */
+    LONG   fame;                /*   Fame score (primary ranking)           */
+    LONG   explores;           /*   lifetime explorations                  */
+    LONG   discoveries;        /*   lifetime notable discoveries           */
+};
+
+VOID  pl_open(VOID);            /* open the player file, creating it if new  */
+VOID  pl_close(VOID);           /* close the player file                     */
+
+/* Load the player for userid into *p, creating the record on first visit    */
+/* and refilling Action Points if a new day has begun. Returns TRUE when a   */
+/* brand-new explorer was just created.                                      */
+GBOOL pl_ensure(const CHAR *userid, struct fracplyr *p, INT dailyap);
+
+VOID  pl_write(struct fracplyr *p);   /* update existing or insert new       */
+VOID  pl_delete(const CHAR *userid);  /* remove a player's record            */
+
+#endif /* FRACTURE_PLAYER_H */

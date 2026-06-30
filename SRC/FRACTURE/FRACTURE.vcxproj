@@ -104,9 +104,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="FRACTURE.H" />
+    <ClInclude Include="PLAYER.H" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FRACTURE.C" />
+    <ClCompile Include="PLAYER.C" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="FRACTURE.rc" />
