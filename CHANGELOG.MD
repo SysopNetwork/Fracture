@@ -34,3 +34,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   and updates lifetime stats. A live **status** screen shows name, Fame, Action
   Points remaining, and exploration/discovery totals.
 - ADR 0002: player record shape and the lazy daily Action Point reset.
+- World map (`WORLD.C`/`.H`): a square tile grid in `FRACWLD.DAT` (Btrieve,
+  keyed on a packed coordinate), generated once on first run with weighted
+  terrain. Sysop-configurable size (`WLDSIZ` option, default 40, 8..64).
+- Player position on the map (starts at the center), with travel in the four
+  compass directions (**N/S/E/W**, 1 Action Point each), bounded by the world
+  edge.
+- Tile-based searching (**R**): charting an unexplored tile reveals its terrain
+  and awards Fame; re-searching charted ground yields occasional minor finds.
+- Local map view (**L**): an ANSI minimap centered on the player showing charted
+  terrain glyphs, unexplored tiles, and a legend. Status (**T**) now shows the
+  player's coordinates.
+- ADR 0003: the world map model (coordinate packing, storage, generation).

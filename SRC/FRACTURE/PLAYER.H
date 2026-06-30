@@ -23,6 +23,10 @@ struct fracplyr {                /* one persistent player record             */
     LONG   fame;                /*   Fame score (primary ranking)           */
     LONG   explores;           /*   lifetime explorations                  */
     LONG   discoveries;        /*   lifetime notable discoveries           */
+    UCHAR  posx;               /*   current map column (0..world size-1)   */
+    UCHAR  posy;               /*   current map row    (0..world size-1)   */
+    UCHAR  started;            /*   has the start position been placed?     */
+    UCHAR  pad;                /*   reserved (keeps the record even)        */
 };
 
 VOID  pl_open(VOID);            /* open the player file, creating it if new  */

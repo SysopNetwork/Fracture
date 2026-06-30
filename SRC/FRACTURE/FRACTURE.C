@@ -6,13 +6,12 @@
  *   Description:   Fracture is a persistent, multiplayer world-exploration  *
  *                  and survival-strategy door game for The Major BBS v10.    *
  *                                                                           *
- *                  This file is the module entry point. It registers the     *
- *                  module with the host, wires up the per-user menu state    *
- *                  machine, and drives the core daily loop: each player      *
- *                  receives Action Points and spends them exploring.         *
- *                  Storage of player state lives in PLAYER.C; further game   *
- *                  systems (world, camp, research, economy) are added as     *
- *                  separate source files as development proceeds.            *
+ *                  This file is the module entry point and the per-user      *
+ *                  menu loop. It moves the player across the tile map        *
+ *                  (WORLD.C), searches tiles for finds, and renders the      *
+ *                  local view. Player state is stored by PLAYER.C. Further   *
+ *                  systems (camp, research, economy) are added as separate   *
+ *                  source files as development proceeds.                     *
  *                                                                           *
  *   See LICENSE file in the project root for terms and conditions.          *
  *                                                                           *
@@ -23,20 +22,19 @@
 #include "bbsutils.h"                /* lngrnd() - ranged random numbers     */
 #include "FRACTURE.H"
 #include "PLAYER.H"
+#include "WORLD.H"
 
 /* ---- forward declarations -------------------------------------------- */
 GBOOL user_logon(VOID);              /* per-user logon supplemental routine  */
 GBOOL module_main(VOID);             /* main input / menu routine            */
 VOID  user_deleted(CHAR *userid);    /* delete-account routine               */
-VOID  do_explore(struct fracplyr *p);/* perform one Explore action           */
+VOID  do_move(struct fracplyr *p, INT dx, INT dy, const CHAR *dir);
+VOID  do_search(struct fracplyr *p); /* search the current tile              */
+VOID  do_look(struct fracplyr *p);   /* show the local map and tile          */
 VOID  system_shutdown(VOID);         /* finish-up (system shutdown) routine  */
 VOID  end_fracture(VOID);            /* empty marker to aid crash analysis   */
 
-/* ---- module interface block ------------------------------------------ *
- * The host invokes these callbacks over a user's lifetime in the module. *
- * The midnight cleanup hook is still NULL: Fracture resets Action Points *
- * lazily per player (see PLAYER.C), so no server-wide nightly pass is    *
- * needed yet. It will host world evolution once the world model lands.   */
+/* ---- module interface block ------------------------------------------ */
 INT usrstt;                          /* per-user state id in this module     */
 struct module FRACTURE = {
      "",                             /* description (set in init)            */
@@ -55,37 +53,33 @@ struct module FRACTURE = {
 HMCVFILE fracmb;                     /* module message file handle           */
 GBOOL    show_welcome;               /* sysop option: greet users at logon?  */
 INT      daily_ap;                   /* sysop option: Action Points per day  */
+INT      world_sz;                   /* sysop option: world dimension        */
 
 /* ---------------------------------------------------------------------- *
  * init__fracture                                                         *
  *                                                                        *
  * Required exported entry point. Its name must match the DLL filename.   *
- * Registers the module, opens the message and data files, and reads the  *
- * sysop-configurable options.                                            *
+ * Registers the module and opens the message and data files.            *
  * ---------------------------------------------------------------------- */
 VOID EXPORT
 init__fracture(VOID)
 {
-    /* register the module with the host using the description from the MDF */
     stzcpy(FRACTURE.descrp, gmdnam("FRACTURE.MDF"), MNMSIZ);
     usrstt = register_module(&FRACTURE);
 
-    /* open the compiled message file and read configurable options */
     fracmb = opnmsg("FRACTURE.MCV");
     show_welcome = ynopt(WELCOPT);
     daily_ap     = numopt(DAYAP, 1, 200);
+    world_sz     = numopt(WLDSIZ, 8, WLDMAX);
 
-    /* open (creating if needed) the persistent player data file */
-    pl_open();
+    pl_open();                       /* persistent players                   */
+    wld_open(world_sz);              /* the map (generated on first run)     */
 
-    /* note startup in the audit log */
     shocst("Fracture", "Loaded v1.0.0 - Copyright (C) 2026 SysopNetwork.com");
 }
 
 /* ---------------------------------------------------------------------- *
  * user_logon                                                             *
- *                                                                        *
- * Optionally greets the user as they enter the BBS (not the module).     *
  * ---------------------------------------------------------------------- */
 GBOOL EXPORT
 user_logon(VOID)
@@ -100,18 +94,95 @@ user_logon(VOID)
 }
 
 /* ---------------------------------------------------------------------- *
- * do_explore                                                             *
+ * do_look                                                                *
  *                                                                        *
- * Spends one Action Point to explore. Outcomes are weighted so most      *
- * explorations yield something useful (the design avoids long streaks    *
- * of failure): ~10% turn up nothing, ~75% a minor find worth a little    *
- * Fame, and ~15% a notable discovery worth more. The updated record is   *
- * persisted before returning.                                            *
+ * Render the player's surroundings: a header naming the current tile,    *
+ * then a local map centered on the player. Charted tiles show a terrain  *
+ * glyph, the player is '@', unexplored tiles are '?', and area beyond    *
+ * the world edge is blank.                                               *
+ * ---------------------------------------------------------------------- */
+#define VIEWW 4                      /* columns shown each side of player    */
+#define VIEWH 3                      /* rows shown above/below player        */
+
+VOID EXPORT
+do_look(struct fracplyr *p)
+{
+    struct fractile here;
+    struct fractile t;
+    CHAR row[2 * (2 * VIEWW + 1) + 1];
+    INT vx, vy, i;
+    const CHAR *name;
+
+    wld_get(p->posx, p->posy, &here);
+    name = (here.flags & TF_DISCOVERED) ? wld_name(here.terrain) : "unknown";
+    prfmsg(LOOKHD, (INT)p->posx, (INT)p->posy, name);
+
+    prf("\r\n");
+    for (vy = (INT)p->posy - VIEWH; vy <= (INT)p->posy + VIEWH; vy++) {
+        i = 0;
+        for (vx = (INT)p->posx - VIEWW; vx <= (INT)p->posx + VIEWW; vx++) {
+            CHAR ch;
+            if (vx < 0 || vy < 0 || vx >= wld_size() || vy >= wld_size())
+                ch = ' ';
+            else if (vx == (INT)p->posx && vy == (INT)p->posy)
+                ch = '@';
+            else {
+                wld_get(vx, vy, &t);
+                ch = (t.flags & TF_DISCOVERED) ? wld_glyph(t.terrain) : '?';
+            }
+            row[i++] = ch;
+            row[i++] = ' ';
+        }
+        row[i] = '\0';
+        prf("      %s\r\n", row);
+    }
+    prfmsg(LEGEND);
+}
+
+/* ---------------------------------------------------------------------- *
+ * do_move                                                                *
+ *                                                                        *
+ * Travel one tile in a compass direction for one Action Point, then show *
+ * the new surroundings. Movement is blocked at the edge of the world.    *
  * ---------------------------------------------------------------------- */
 VOID EXPORT
-do_explore(struct fracplyr *p)
+do_move(struct fracplyr *p, INT dx, INT dy, const CHAR *dir)
 {
-    INT roll;
+    INT nx, ny;
+
+    if (p->actpts <= 0) {
+        prfmsg(NOAP);
+        return;
+    }
+
+    nx = (INT)p->posx + dx;
+    ny = (INT)p->posy + dy;
+    if (nx < 0 || ny < 0 || nx >= wld_size() || ny >= wld_size()) {
+        prfmsg(EDGE);
+        return;
+    }
+
+    p->actpts--;
+    p->posx = (UCHAR)nx;
+    p->posy = (UCHAR)ny;
+    pl_write(p);
+
+    prfmsg(MOVED, dir);
+    do_look(p);
+}
+
+/* ---------------------------------------------------------------------- *
+ * do_search                                                              *
+ *                                                                        *
+ * Spend one Action Point searching the current tile. Charting a tile for *
+ * the first time is the big payoff (it reveals the terrain and awards    *
+ * Fame); searching ground already charted yields the occasional minor    *
+ * find. Outcomes favor success, per the design.                          *
+ * ---------------------------------------------------------------------- */
+VOID EXPORT
+do_search(struct fracplyr *p)
+{
+    struct fractile t;
     INT gain;
 
     if (p->actpts <= 0) {
@@ -121,21 +192,26 @@ do_explore(struct fracplyr *p)
 
     p->actpts--;
     p->explores++;
+    wld_get(p->posx, p->posy, &t);
 
-    roll = (INT)lngrnd(1, 100);
-    if (roll <= 10) {
-        prfmsg(EXPNADA);                     /* nothing of note this time     */
-    }
-    else if (roll <= 85) {
-        gain = (INT)lngrnd(1, 3);            /* minor find                    */
+    if (!(t.flags & TF_DISCOVERED)) {
+        t.flags |= TF_DISCOVERED;
+        wld_put(&t);
+        p->discoveries++;
+        gain = (INT)lngrnd(8, 20);
         p->fame += gain;
-        prfmsg(EXPRES, gain);
+        prfmsg(NEWTILE, wld_name(t.terrain), gain);
     }
     else {
-        gain = (INT)lngrnd(10, 25);          /* notable discovery             */
-        p->fame += gain;
-        p->discoveries++;
-        prfmsg(EXPDISC, gain);
+        INT roll = (INT)lngrnd(1, 100);
+        if (roll <= 20) {
+            prfmsg(EXPNADA);
+        }
+        else {
+            gain = (INT)lngrnd(1, 3);
+            p->fame += gain;
+            prfmsg(EXPRES, gain);
+        }
     }
 
     pl_write(p);
@@ -144,24 +220,29 @@ do_explore(struct fracplyr *p)
 /* ---------------------------------------------------------------------- *
  * module_main                                                            *
  *                                                                        *
- * Drives the per-user menu state machine while the user is in Fracture.  *
- * The current player's record is loaded fresh on every call (MBBS runs   *
- * one user's routine at a time, so a stack copy is the safe scope), and  *
- * any action that changes it saves through PLAYER.C.                      *
- * Returns 1 to remain in the module, 0 to exit back to the BBS.          *
+ * Per-user menu state machine. The player's record is loaded fresh each  *
+ * call (MBBS runs one user's routine at a time), the starting position   *
+ * is placed at the center of the map on first ever entry, and any action *
+ * that changes the record saves through PLAYER.C.                        *
  * ---------------------------------------------------------------------- */
 GBOOL EXPORT
 module_main(VOID)
 {
-    struct fracplyr me;              /* the current user's player record     */
+    struct fracplyr me;
     GBOOL isnew;
 
     setmbk(fracmb);
     isnew = pl_ensure(usaptr->userid, &me, daily_ap);
 
+    if (!me.started) {
+        me.posx    = (UCHAR)(wld_size() / 2);
+        me.posy    = (UCHAR)(wld_size() / 2);
+        me.started = 1;
+        pl_write(&me);
+    }
+
     switch (usrptr->substt) {
     case 0:
-        /* first entry: greet a brand-new explorer, then show the menu */
         if (isnew)
             prfmsg(FIRSTM);
         prfmsg(usrptr->substt = MAINMEN);
@@ -169,29 +250,42 @@ module_main(VOID)
 
     case MAINMEN:
         if (sameas(margv[0], "x")) {
-            /* leave the module */
             prfmsg(EXITMSG, usaptr->userid);
             outprf(usrnum);
             rstmbk();
             return 0;
         }
         else if (sameas(margv[0], "\0") || sameas(margv[0], "")) {
-            prfmsg(SHORTM);          /* empty input -> short prompt        */
+            prfmsg(SHORTM);
         }
         else if (sameas(margv[0], "?")) {
-            prfmsg(MAINMEN);           /* redisplay the full menu            */
+            prfmsg(MAINMEN);
             break;
         }
+        else if (sameas(margv[0], "n")) {
+            do_move(&me, 0, -1, "north");
+        }
+        else if (sameas(margv[0], "s")) {
+            do_move(&me, 0, 1, "south");
+        }
         else if (sameas(margv[0], "e")) {
-            do_explore(&me);           /* spend an Action Point exploring    */
+            do_move(&me, 1, 0, "east");
+        }
+        else if (sameas(margv[0], "w")) {
+            do_move(&me, -1, 0, "west");
+        }
+        else if (sameas(margv[0], "r")) {
+            do_search(&me);
         }
         else if (sameas(margv[0], "l")) {
-            /* show live status: name, Fame, Action Points, lifetime stats */
+            do_look(&me);
+        }
+        else if (sameas(margv[0], "t")) {
             prfmsg(STATUS, me.userid, me.fame, me.actpts,
-                   me.explores, me.discoveries);
+                   me.explores, me.discoveries, (INT)me.posx, (INT)me.posy);
         }
         else {
-            prfmsg(INVALID);            /* unrecognized selection             */
+            prfmsg(INVALID);
         }
         prfmsg(SHORTM);
         break;
@@ -204,8 +298,6 @@ module_main(VOID)
 
 /* ---------------------------------------------------------------------- *
  * user_deleted                                                           *
- *                                                                        *
- * Removes a player's saved record when their BBS account is deleted.     *
  * ---------------------------------------------------------------------- */
 VOID EXPORT
 user_deleted(CHAR *userid)
@@ -215,21 +307,17 @@ user_deleted(CHAR *userid)
 
 /* ---------------------------------------------------------------------- *
  * system_shutdown                                                        *
- *                                                                        *
- * Releases module resources when the system shuts down.                  *
  * ---------------------------------------------------------------------- */
 VOID EXPORT
 system_shutdown(VOID)
 {
+    wld_close();
     pl_close();
     clsmsg(fracmb);
 }
 
 /* ---------------------------------------------------------------------- *
  * end_fracture                                                           *
- *                                                                        *
- * Empty routine that marks the end of the module's code, which makes     *
- * GALEXCEP.OUT crash reports easier to interpret.                        *
  * ---------------------------------------------------------------------- */
 VOID EXPORT
 end_fracture(VOID)
