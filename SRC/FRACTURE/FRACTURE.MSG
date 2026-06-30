@@ -23,7 +23,7 @@ LEVEL6 {Fracture: module text}
 LOGON {[1;36mFracture[0;37m - a living world rebuilt every day.
 [0m} T Logon greeting
 
-MAINMEN {[2J[1;36m
+MAINMEN {[1;36m
   ============================================================
    F R A C T U R E
   ============================================================
@@ -144,3 +144,53 @@ LEVEL4 {Fracture: world evolution}
  the world.
 
 REGENPCT {Unexplored tiles regenerated each midnight (%)? 5} N 0 100
+
+LEVEL6 {Fracture: arrival quips}
+
+QUIP1 {[2J
+[1;33m  "Finally, I'm here."[0;37m
+} T Arrival quip 1
+
+QUIP2 {[2J
+[1;33m  "Better late than..."[0;37m
+} T Arrival quip 2
+
+QUIP3 {[2J
+[1;33m  "Bow down, peasants."[0;37m
+} T Arrival quip 3
+
+QUIP4 {[2J
+[1;33m  "Chaos has arrived."[0;37m
+} T Arrival quip 4
+
+QUIP5 {[2J
+[1;33m  "Professional overthinker here."[0;37m
+} T Arrival quip 5
+
+QUIP6 {[2J
+[1;33m  "An absolute disaster, reporting in."[0;37m
+} T Arrival quip 6
+
+QUIP7 {[2J
+[1;33m  "Hide your snacks."[0;37m
+} T Arrival quip 7
+
+QUIP8 {[2J
+[1;33m  "I brought snacks."[0;37m
+} T Arrival quip 8
+
+QUIP9 {[2J
+[1;33m  "Fear me, mortals."[0;37m
+} T Arrival quip 9
+
+QUIP10 {[2J
+[1;33m  "Death warmed over. Let's do this."[0;37m
+} T Arrival quip 10
+
+QUIP11 {[2J
+[1;33m  "Nobody panic. ...Okay, maybe panic."[0;37m
+} T Arrival quip 11
+
+QUIP12 {[2J
+[1;33m  "The disappointment is mutual."[0;37m
+} T Arrival quip 12

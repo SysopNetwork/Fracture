@@ -86,7 +86,7 @@ init__fracture(VOID)
     wld_open(world_sz);              /* the map (generated on first run)     */
     hist_open();                     /* the shared server chronicle          */
 
-    shocst("Fracture", "Loaded v1.0.0 - Copyright (C) 2026 SysopNetwork.com");
+    shocst("Fracture", "Fracture v1.0.0 just joined the chat! Hold my juicebox.");
 }
 
 /* ---------------------------------------------------------------------- *
@@ -358,7 +358,9 @@ module_main(VOID)
     switch (usrptr->substt) {
     case 0:
         if (isnew)
-            prfmsg(FIRSTM);
+            prfmsg(FIRSTM);                  /* new explorers get the intro */
+        else
+            prfmsg((INT)lngrnd(QUIP1, QUIPN));/* veterans get a random quip */
         prfmsg(usrptr->substt = MAINMEN);
         break;
 
@@ -373,6 +375,7 @@ module_main(VOID)
             prfmsg(SHORTM);
         }
         else if (sameas(margv[0], "?")) {
+            prf("\x1b[2J");                  /* MAINMEN no longer self-clears */
             prfmsg(MAINMEN);
             break;
         }

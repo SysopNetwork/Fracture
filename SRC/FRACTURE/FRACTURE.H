@@ -35,3 +35,6 @@
 /* entry 31 is a second LEVEL4 marker (more configuration options)         */
 #define REGENPCT   32   /* N  - sysop option: % unexplored tiles regen'd   */
                         /*      each midnight (0..100)                     */
+/* entry 33 is a LEVEL6 marker (arrival quips)                             */
+#define QUIP1      34   /* T  - first arrival quip; QUIP1..QUIPN are a     */
+#define QUIPN      45   /* T  - contiguous pool, one shown at random       */

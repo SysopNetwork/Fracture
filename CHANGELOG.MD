@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- The boot-time audit-trail line now reads
+  `Fracture v1.0.0 just joined the chat! Hold my juicebox.`
+
 ### Fixed
+- The first-time welcome (`FIRSTM`) was being wiped immediately by the main
+  menu's screen-clear, so it never showed. The menu no longer clears the screen
+  itself (the entry message clears instead), so the welcome — and the new
+  arrival quips — now display above the menu.
 - A player whose stored position (or camp) fell outside the current world
   bounds — which happens when the world size changes after they have started —
   was stranded: the local map rendered blank and movement was blocked, though
@@ -17,6 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   world.
 
 ### Added
+- Arrival quips: returning players are greeted on entry with one of a dozen
+  short, irreverent one-liners chosen at random (sysop-editable as `QUIP1`..`QUIP12`
+  text blocks; add or reword freely). New explorers still get the first-time intro.
 - Initial project scaffolding: repository directory structure (`SRC/`, `DIST/`,
   `DOCS/`, `DOCS/ADR/`, `TESTS/`, `TOOLS/`, `BUILD/`).
 - Project documentation: `README.MD`, `TECHNICAL.MD`, `BUILDING.MD`, `CHANGELOG.MD`.
