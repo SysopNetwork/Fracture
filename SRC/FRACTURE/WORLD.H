@@ -44,6 +44,11 @@ INT   wld_size(VOID);           /* configured world dimension               */
 VOID  wld_get(INT x, INT y, struct fractile *t);  /* fetch a tile           */
 VOID  wld_put(struct fractile *t);                /* save a tile            */
 
+/* Daily world evolution: re-roll the terrain of roughly `pct` percent of the */
+/* tiles that no player has charted yet, leaving discovered ground untouched. */
+/* Returns the number of tiles changed. Run from the midnight cleanup hook.   */
+INT   wld_evolve(INT pct);
+
 const CHAR *wld_name(INT terrain);   /* terrain display name                */
 CHAR        wld_glyph(INT terrain);  /* terrain single-character map glyph  */
 

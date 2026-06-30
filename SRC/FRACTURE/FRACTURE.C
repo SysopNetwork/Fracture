@@ -37,6 +37,7 @@ VOID  do_look(struct fracplyr *p);   /* show the local map and tile          */
 VOID  do_camp(struct fracplyr *p);   /* show the camp and its next upgrade   */
 VOID  do_upgrade(struct fracplyr *p);/* spend resources to upgrade the camp  */
 VOID  do_news(VOID);                 /* show the server-wide news chronicle  */
+VOID  world_midnight(VOID);          /* midnight cleanup: evolve the world   */
 VOID  system_shutdown(VOID);         /* finish-up (system shutdown) routine  */
 VOID  end_fracture(VOID);            /* empty marker to aid crash analysis   */
 
@@ -50,7 +51,7 @@ struct module FRACTURE = {
      NULL,                           /* "injoth" routine                     */
      NULL,                           /* user logoff supplemental routine     */
      NULL,                           /* hangup (lost carrier) routine        */
-     NULL,                           /* midnight cleanup (future world tick) */
+     world_midnight,                 /* midnight cleanup: daily world tick   */
      user_deleted,                   /* delete-account routine               */
      system_shutdown                 /* finish-up (system shutdown) routine  */
 };
@@ -60,6 +61,8 @@ HMCVFILE fracmb;                     /* module message file handle           */
 GBOOL    show_welcome;               /* sysop option: greet users at logon?  */
 INT      daily_ap;                   /* sysop option: Action Points per day  */
 INT      world_sz;                   /* sysop option: world dimension        */
+INT      regen_pct;                  /* sysop option: % unexplored tiles     */
+                                     /* regenerated each midnight            */
 
 /* ---------------------------------------------------------------------- *
  * init__fracture                                                         *
@@ -77,6 +80,7 @@ init__fracture(VOID)
     show_welcome = ynopt(WELCOPT);
     daily_ap     = numopt(DAYAP, 1, 200);
     world_sz     = numopt(WLDSIZ, 8, WLDMAX);
+    regen_pct    = numopt(REGENPCT, 0, 100);
 
     pl_open();                       /* persistent players                   */
     wld_open(world_sz);              /* the map (generated on first run)     */
@@ -408,6 +412,22 @@ VOID EXPORT
 user_deleted(CHAR *userid)
 {
     pl_delete(userid);
+}
+
+/* ---------------------------------------------------------------------- *
+ * world_midnight                                                         *
+ *                                                                        *
+ * The module's midnight cleanup routine, run once by the host during the *
+ * nightly BBS cleanup. This is where the world evolves: a sysop-set       *
+ * percentage of unexplored tiles are regenerated so returning players     *
+ * find fresh ground to chart. The result is logged to the audit trail.   *
+ * ---------------------------------------------------------------------- */
+VOID EXPORT
+world_midnight(VOID)
+{
+    INT changed = wld_evolve(regen_pct);
+    shocst("Fracture", "World evolution: %d unexplored tile(s) regenerated.",
+           changed);
 }
 
 /* ---------------------------------------------------------------------- *

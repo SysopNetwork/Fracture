@@ -176,6 +176,44 @@ wld_put(struct fractile *t)
 }
 
 /* ---------------------------------------------------------------------- *
+ * wld_evolve                                                             *
+ *                                                                        *
+ * The daily world tick. The concept calls for the world to change a       *
+ * little each midnight: a configurable percentage of the tiles no player  *
+ * has charted yet are regenerated with fresh terrain, while charted       *
+ * ground stays exactly as the explorers left it. Camps and player-built   *
+ * structures are never touched here - they live in the player record, not  *
+ * in the world file. Returns the number of tiles changed.                 *
+ *                                                                        *
+ * Iteration is by coordinate rather than by stepping the data file, so     *
+ * updating a tile never disturbs the traversal.                           *
+ * ---------------------------------------------------------------------- */
+INT EXPORT
+wld_evolve(INT pct)
+{
+    struct fractile t;
+    INT x, y;
+    INT changed = 0;
+
+    if (pct <= 0)
+        return 0;                         /* sysop has disabled evolution   */
+
+    for (y = 0; y < worldsz; y++) {
+        for (x = 0; x < worldsz; x++) {
+            wld_get(x, y, &t);
+            if (t.flags & TF_DISCOVERED)
+                continue;                 /* charted ground is preserved    */
+            if ((INT)lngrnd(1, 100) <= pct) {
+                t.terrain = gen_terrain();
+                wld_put(&t);
+                changed++;
+            }
+        }
+    }
+    return changed;
+}
+
+/* ---------------------------------------------------------------------- *
  * wld_name / wld_glyph                                                   *
  * ---------------------------------------------------------------------- */
 const CHAR * EXPORT

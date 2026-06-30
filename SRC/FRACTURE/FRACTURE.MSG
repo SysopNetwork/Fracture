@@ -133,3 +133,12 @@ NEWSNON {  [1;33mThe chronicle is empty. Be the first to make history.[0;37m
 
 NEWSFTR {  ------------------------------------------------------------
 [0m} T News footer
+
+LEVEL4 {Fracture: world evolution}
+
+ The percentage of unexplored tiles regenerated with fresh terrain
+ each midnight, during the nightly cleanup. Charted tiles, camps,
+ and player-built structures are never changed. Set to 0 to freeze
+ the world.
+
+REGENPCT {Unexplored tiles regenerated each midnight (%)? 5} N 0 100

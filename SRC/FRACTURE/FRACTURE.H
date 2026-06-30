@@ -32,3 +32,6 @@
 #define NEWSBLD    28   /* T  - news line: build (%s date, %s who, %s tier)*/
 #define NEWSNON    29   /* T  - news: the chronicle is empty              */
 #define NEWSFTR    30   /* T  - news chronicle footer                     */
+/* entry 31 is a second LEVEL4 marker (more configuration options)         */
+#define REGENPCT   32   /* N  - sysop option: % unexplored tiles regen'd   */
+                        /*      each midnight (0..100)                     */

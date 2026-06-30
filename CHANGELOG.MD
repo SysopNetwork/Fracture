@@ -63,3 +63,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   for every player. A news view (**H**) shows the most recent events newest-first,
   making the shared world feel inhabited. ADR 0006 records the history and news
   model.
+- Daily world evolution: the module's midnight cleanup routine (`mcurou`) now runs
+  during the nightly BBS cleanup and regenerates a sysop-configurable percentage
+  (`REGENPCT` option, default 5, 0..100) of the tiles no player has charted yet,
+  with fresh terrain. Charted ground, camps, and structures are preserved; setting
+  the option to 0 freezes the world. The result is logged to the audit trail. ADR
+  0007 records the model.
