@@ -31,7 +31,7 @@
 GBOOL user_logon(VOID);              /* per-user logon supplemental routine  */
 GBOOL module_main(VOID);             /* main input / menu routine            */
 VOID  user_deleted(CHAR *userid);    /* delete-account routine               */
-VOID  do_move(struct fracplyr *p, INT dx, INT dy, const CHAR *dir);
+VOID  do_move(struct fracplyr *p, INT dx, INT dy);
 VOID  do_search(struct fracplyr *p); /* search the current tile              */
 VOID  do_look(struct fracplyr *p);   /* show the local map and tile          */
 VOID  do_camp(struct fracplyr *p);   /* show the camp and its next upgrade   */
@@ -155,11 +155,13 @@ do_look(struct fracplyr *p)
 /* ---------------------------------------------------------------------- *
  * do_move                                                                *
  *                                                                        *
- * Travel one tile in a compass direction for one Action Point, then show *
- * the new surroundings. Movement is blocked at the edge of the world.    *
+ * Travel one tile by (dx, dy) for one Action Point, then redraw the new  *
+ * surroundings. Movement is blocked at the edge of the world. The map     *
+ * redraw clears the screen, so no separate "you moved" line is printed -   *
+ * it would only be erased by that clear (and would trip the page pause).   *
  * ---------------------------------------------------------------------- */
 VOID EXPORT
-do_move(struct fracplyr *p, INT dx, INT dy, const CHAR *dir)
+do_move(struct fracplyr *p, INT dx, INT dy)
 {
     INT nx, ny;
 
@@ -180,8 +182,7 @@ do_move(struct fracplyr *p, INT dx, INT dy, const CHAR *dir)
     p->posy = (UCHAR)ny;
     pl_write(p);
 
-    prfmsg(MOVED, dir);
-    do_look(p);
+    do_look(p);                          /* the recentered map is the feedback */
 }
 
 /* ---------------------------------------------------------------------- *
@@ -382,16 +383,16 @@ module_main(VOID)
             break;
         }
         else if (sameas(margv[0], "n")) {
-            do_move(&me, 0, -1, "north");
+            do_move(&me, 0, -1);
         }
         else if (sameas(margv[0], "s")) {
-            do_move(&me, 0, 1, "south");
+            do_move(&me, 0, 1);
         }
         else if (sameas(margv[0], "e")) {
-            do_move(&me, 1, 0, "east");
+            do_move(&me, 1, 0);
         }
         else if (sameas(margv[0], "w")) {
-            do_move(&me, -1, 0, "west");
+            do_move(&me, -1, 0);
         }
         else if (sameas(margv[0], "r")) {
             do_search(&me);

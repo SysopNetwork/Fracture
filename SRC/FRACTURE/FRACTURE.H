@@ -16,7 +16,8 @@
 #define EXPNADA    13   /* T  - search outcome: nothing gathered           */
 #define NEWTILE    14   /* T  - search outcome: charted new tile (%s, +%d) */
 #define EDGE       15   /* T  - blocked at the edge of the world           */
-#define MOVED      16   /* T  - travel confirmation (%s direction)         */
+#define MOVED      16   /* T  - travel confirmation (unused: erased by the */
+                        /*      map redraw; kept to preserve numbering)     */
 #define LOOKHD     17   /* T  - local view header (%d x, %d y, %s terrain) */
 #define LEGEND     18   /* T  - local map legend                           */
 #define GATHER     19   /* T  - resources gathered (%d amount, %s name)    */
