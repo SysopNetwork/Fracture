@@ -1,17 +1,17 @@
 LEVEL4 {Fracture: configurable options}
 
-  If you want Fracture to greet players with a short message as
-  they log on to the BBS, set this option to YES.
+ If you want Fracture to greet players with a short message as
+ they log on to the BBS, set this option to YES.
 
 WELCOPT {Greet players at logon? YES} B
 
-  How many Action Points each player receives per day. Action
-  Points are spent on actions such as traveling and searching.
+ How many Action Points each player receives per day. Action
+ Points are spent on actions such as traveling and searching.
 
 DAYAP {Action Points granted to each player per day? 20} N 1 200
 
-  The size of the world, in tiles, along each edge. Takes effect
-  only when the world is first generated.
+ The size of the world, in tiles, along each edge. Takes effect
+ only when the world is first generated.
 
 WLDSIZ {World size (tiles per edge)? 40} N 8 64
 
