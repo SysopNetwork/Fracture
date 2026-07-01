@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Changed
+- Visual overhaul: every player-facing screen was restyled in a consistent
+  shaded block-art ANSI look (CP437 `░▒▓█` banners and gradient rules, `▐▌`
+  half-block menu tabs, a fixed cyan/white/yellow palette). The main menu,
+  welcome, status, camp, location header, news chronicle, and weather line now
+  share one visual language. Message names, types, and argument order were
+  preserved, so no code changed and no rebuild is required (the host recompiles
+  the `.MSG` to `.MCV` at startup). The `.MSG` is now generated from
+  `TOOLS/GENMSG.PY`; ADR 0009 records the style. Sysops can still reword the
+  human-readable text.
 - The midnight cleanup routine now advances weather and seasons alongside the
   world's terrain evolution, and logs a second audit-trail line naming the new
   day's condition and season (summary `Fracture's skies have turned`).
