@@ -53,6 +53,7 @@ _menu += IND + tab('N S E W', ' Travel the world  (1 AP)') + '\r\n'
 _menu += IND + tab('R', '       Search the ground  (1 AP)') + '\r\n'
 _menu += IND + tab('L', '       Look around (local map)') + '\r\n'
 _menu += IND + tab('C', '       Camp - view and build it up') + '\r\n'
+_menu += IND + tab('P', '       Crew - workers & production') + '\r\n'
 _menu += IND + tab('H', '       News & the world chronicle') + '\r\n'
 _menu += IND + tab('T', '       Explorer status') + '\r\n'
 _menu += IND + tab('X', '       Exit to the BBS') + '\r\n'
@@ -60,7 +61,7 @@ _menu += '\r\n' + IND + WHT + 'Choose: ' + RST
 MAINMEN = T('MAINMEN', _menu, 'Main menu')
 
 _short  = IND + tab('N S E W','Travel') + '  ' + tab('R','Search') + '  ' + tab('L','Look') + '  ' + tab('C','Camp') + '\r\n'
-_short += IND + tab('H','News') + '  ' + tab('T','Status') + '  ' + tab('X','Exit') + '  ' + tab('?','Menu') + '\r\n'
+_short += IND + tab('P','Crew') + '  ' + tab('H','News') + '  ' + tab('T','Status') + '  ' + tab('X','Exit') + '  ' + tab('?','Menu') + '\r\n'
 _short += IND + WHT + 'Choose: ' + RST
 SHORTM = T('SHORTM', _short, 'Short menu')
 
@@ -175,6 +176,43 @@ WXLINE = T('WXLINE',
     IND + CYN+LS+MS+DS+FB + RST + ' ' + WHT + 'Weather ' + YEL + '%s' + GRY + ' - %s' + WHT + '   Season ' + YEL + '%s' + RST + '\r\n' + RST,
     'Weather & season line')
 
+# --- workers / production ---
+CREWHD = T('CREWHD',
+    CLR + '\r\n' + sect('YOUR CREW') + '\r\n' + rule() + '\r\n' + RST,
+    'Crew screen header')
+
+# CREWFT - specifiers: %d used, %d cap, %d wood cost, %d food cost
+CREWFT = T('CREWFT',
+    rule() + '\r\n' + IND + YEL + '%d' + GRY + ' of ' + YEL + '%d' + GRY + ' crew slots filled.' + RST + '\r\n'
+    + IND + GRY + 'Recruit with ' + WHT+RHB+' P n '+LHB + GRY + ' (n = 1-5).  Each costs ' + YEL + '%d' + GRY + ' Wood, ' + YEL + '%d' + GRY + ' Food.' + RST + '\r\n' + RST,
+    'Crew footer')
+
+HIRED = T('HIRED',
+    IND + MAG+DS+MS+LS + RST + ' ' + GRY + 'You take on a ' + WHT + '%s' + GRY + ' - welcome to the crew.' + RST + '\r\n',
+    'Recruited a worker')
+
+HIREFUL = T('HIREFUL',
+    IND + RED+RHB + RST + ' ' + RED + 'Your camp cannot house any more workers - build it up first.' + RST + '\r\n',
+    'Crew at capacity')
+
+# HIRECST - specifiers: %d wood cost, %d food cost
+HIRECST = T('HIRECST',
+    IND + RED+RHB + RST + ' ' + RED + 'Not enough resources - a worker costs ' + WHT + '%d' + RED + ' Wood and ' + WHT + '%d' + RED + ' Food.' + RST + '\r\n',
+    'Cannot afford worker')
+
+HIREBAD = T('HIREBAD',
+    IND + RED+RHB + RST + ' ' + RED + 'That is not a worker to hire. Use ' + WHT + 'P 1' + RED + ' through ' + WHT + 'P 5' + RED + '.' + RST + '\r\n',
+    'Invalid worker selection')
+
+# PRODSUM - specifier: %d total gained
+PRODSUM = T('PRODSUM',
+    IND + GRN+DS+MS+LS + RST + ' ' + GRY + 'While you were away your crew stocked ' + GRN + '%d' + GRY + ' resource(s).' + RST + '\r\n',
+    'Production summary')
+
+PRODHUN = T('PRODHUN',
+    IND + RED+RHB + RST + ' ' + RED + 'Some workers went hungry - keep Food in storage.' + RST + '\r\n',
+    'Workers hungry')
+
 # --- arrival quips (restyled, keep [2J and one per entry) ---
 QUIP_TEXT = [
     '"Finally, I\'m here."',
@@ -270,6 +308,33 @@ out.append('LEVEL6 {Fracture: weather text}')
 out.append('')
 out.append(WXLINE.rstrip('\r\n'))
 out.append('')
+
+# --- config: workers & production ---
+out.append('LEVEL4 {Fracture: workers & production}')
+out.append('')
+out.append(' Turn the crew system on or off. When on, players can house NPC')
+out.append(' workers at their camp (up to a limit set by the camp tier) who')
+out.append(' produce resources passively - one day\'s worth each new day the')
+out.append(' player logs in. The crew eats Food, and the day\'s weather scales')
+out.append(' what they produce.')
+out.append('')
+out.append('WRKOPT {Enable workers and production? YES} B')
+out.append('')
+out.append(' Base units of its resource each worker produces per day, before')
+out.append(' the day\'s weather is applied.')
+out.append('')
+out.append('WRKPROD {Resource units produced per worker per day? 2} N 0 50')
+out.append('')
+out.append(' Food each worker eats per day. If the camp cannot feed the whole')
+out.append(' crew, the hungry workers still produce but the shortfall is noted.')
+out.append('')
+out.append('WRKFOOD {Food eaten per worker per day? 1} N 0 50')
+out.append('')
+out.append('LEVEL6 {Fracture: worker text}')
+out.append('')
+for m in [CREWHD, CREWFT, HIRED, HIREFUL, HIRECST, HIREBAD, PRODSUM, PRODHUN]:
+    out.append(m.rstrip('\r\n'))
+    out.append('')
 
 text = CRLF.join(out) + CRLF
 data = text.encode('cp437')

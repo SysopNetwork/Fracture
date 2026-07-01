@@ -21,6 +21,11 @@ static const LONG campstor[CAMP_MAXLVL + 1] = {
     50, 150, 400, 1000, 2500, 9999
 };
 
+/* worker capacity unlocked at each tier (a Tent houses no crew) */
+static const INT campwrk[CAMP_MAXLVL + 1] = {
+    0, 2, 4, 7, 11, 16
+};
+
 /* cost to upgrade FROM level L to L+1, as [Wood, Stone, Metal, Food, Water] */
 static const LONG upcost[CAMP_MAXLVL][RES_COUNT] = {
     {   30,   10,    0, 0, 0 },   /* Tent       -> Cabin      */
@@ -52,6 +57,19 @@ camp_storage(INT level)
     if (level > CAMP_MAXLVL)
         level = CAMP_MAXLVL;
     return campstor[level];
+}
+
+/* ---------------------------------------------------------------------- *
+ * camp_workers                                                           *
+ * ---------------------------------------------------------------------- */
+INT EXPORT
+camp_workers(INT level)
+{
+    if (level < 0)
+        level = 0;
+    if (level > CAMP_MAXLVL)
+        level = CAMP_MAXLVL;
+    return campwrk[level];
 }
 
 /* ---------------------------------------------------------------------- *

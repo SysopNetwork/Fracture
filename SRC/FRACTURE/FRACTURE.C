@@ -27,6 +27,7 @@
 #include "CAMP.H"
 #include "HISTORY.H"
 #include "WEATHER.H"
+#include "WORKER.H"
 
 /* ---- forward declarations -------------------------------------------- */
 GBOOL user_logon(VOID);              /* per-user logon supplemental routine  */
@@ -38,6 +39,8 @@ VOID  do_look(struct fracplyr *p);   /* show the local map and tile          */
 VOID  do_camp(struct fracplyr *p);   /* show the camp and its next upgrade   */
 VOID  do_upgrade(struct fracplyr *p);/* spend resources to upgrade the camp  */
 VOID  do_news(VOID);                 /* show the server-wide news chronicle  */
+VOID  do_crew(struct fracplyr *p);   /* show the crew & production screen     */
+VOID  do_hire(struct fracplyr *p, CHAR *sel); /* recruit a worker by number   */
 VOID  show_weather(VOID);            /* print today's weather/season line    */
 VOID  world_midnight(VOID);          /* midnight cleanup: evolve the world   */
 VOID  system_shutdown(VOID);         /* finish-up (system shutdown) routine  */
@@ -67,6 +70,9 @@ INT      regen_pct;                  /* sysop option: % unexplored tiles     */
                                      /* regenerated each midnight            */
 GBOOL    weather_on;                 /* sysop option: weather & seasons?     */
 INT      season_len;                 /* sysop option: days per season        */
+GBOOL    workers_on;                 /* sysop option: workers & production?  */
+INT      wrk_prod;                   /* sysop option: units per worker/day   */
+INT      wrk_food;                   /* sysop option: Food per worker/day    */
 
 /* ---------------------------------------------------------------------- *
  * init__fracture                                                         *
@@ -87,11 +93,15 @@ init__fracture(VOID)
     regen_pct    = numopt(REGENPCT, 0, 100);
     weather_on   = ynopt(WXOPT);
     season_len   = numopt(SEASLEN, 1, 90);
+    workers_on   = ynopt(WRKOPT);
+    wrk_prod     = numopt(WRKPROD, 0, 50);
+    wrk_food     = numopt(WRKFOOD, 0, 50);
 
     pl_open();                       /* persistent players                   */
     wld_open(world_sz);              /* the map (generated on first run)     */
     hist_open();                     /* the shared server chronicle          */
     wx_open(weather_on, season_len); /* today's weather and the season cycle */
+    wrk_open(workers_on, wrk_prod, wrk_food); /* the crew / production system */
 
     /* summary <= 32 chars, detail <= 63 - both show on the audit trail     */
     shocst("Fracture's here. Act impressed.",
@@ -343,6 +353,76 @@ show_weather(VOID)
 }
 
 /* ---------------------------------------------------------------------- *
+ * do_crew                                                                *
+ *                                                                        *
+ * Show the player's crew: one row per worker type with how many they      *
+ * have and what those workers produce each day, then the capacity their   *
+ * camp allows and how to recruit. The rows are drawn here (like the map)   *
+ * because they are dynamic; the frame and footer come from the message    *
+ * file so their wording stays sysop-editable.                             *
+ * ---------------------------------------------------------------------- */
+VOID EXPORT
+do_crew(struct fracplyr *p)
+{
+    INT count[WRK_COUNT];
+    INT total, per, i;
+
+    if (!wrk_enabled()) {
+        prf("\x1b[2J\r\n  \x1b[1;31mThe crew system is disabled here.\x1b[0;37m\r\n");
+        return;
+    }
+
+    total = wrk_counts(p->userid, count);
+    per   = wrk_perday();
+
+    prfmsg(CREWHD);
+    for (i = 0; i < WRK_COUNT; i++) {
+        prf("  \x1b[1;33m[%d]\x1b[0;37m \x1b[1;37m%-13s\x1b[0;37m makes "
+            "\x1b[1;37m%-6s\x1b[0;37m  have \x1b[1;32m%d\x1b[0;37m"
+            "   \x1b[1;33m+%d\x1b[0;37m/day\r\n",
+            i + 1, wrk_name(i), res_name(wrk_resource(i)),
+            count[i], count[i] * per);
+    }
+    prfmsg(CREWFT, total, camp_workers(p->camplvl),
+           WRK_COSTWOOD, WRK_COSTFOOD);
+}
+
+/* ---------------------------------------------------------------------- *
+ * do_hire                                                                *
+ *                                                                        *
+ * Recruit one worker of the type named by a 1..5 selection (the second    *
+ * word of the "P n" command). Reports the outcome and, on success, saves   *
+ * the resource cost deducted by wrk_hire.                                  *
+ * ---------------------------------------------------------------------- */
+VOID EXPORT
+do_hire(struct fracplyr *p, CHAR *sel)
+{
+    INT type;
+
+    if (sel == NULL || sel[0] < '1' || sel[0] > '0' + WRK_COUNT) {
+        prfmsg(HIREBAD);
+        return;
+    }
+    type = sel[0] - '1';
+
+    switch (wrk_hire(p, type)) {
+    case WHIRE_OK:
+        pl_write(p);
+        prfmsg(HIRED, wrk_name(type));
+        break;
+    case WHIRE_FULL:
+        prfmsg(HIREFUL);
+        break;
+    case WHIRE_POOR:
+        prfmsg(HIRECST, WRK_COSTWOOD, WRK_COSTFOOD);
+        break;
+    default:
+        prfmsg(HIREBAD);
+        break;
+    }
+}
+
+/* ---------------------------------------------------------------------- *
  * module_main                                                            *
  *                                                                        *
  * Per-user menu state machine. The player's record is loaded fresh each  *
@@ -393,6 +473,17 @@ module_main(VOID)
             prfmsg(FIRSTM);                  /* new explorers get the intro */
         else
             prfmsg((INT)lngrnd(QUIP1, QUIPN));/* veterans get a random quip */
+        {
+            /* the crew works one day for each new day the player returns */
+            GBOOL hungry = 0;
+            INT   made   = wrk_daily(&me, &hungry);
+            if (made > 0 || hungry)
+                pl_write(&me);
+            if (made > 0)
+                prfmsg(PRODSUM, made);
+            if (hungry)
+                prfmsg(PRODHUN);
+        }
         show_weather();                      /* then today's forecast       */
         prfmsg(usrptr->substt = MAINMEN);
         break;
@@ -439,6 +530,12 @@ module_main(VOID)
         else if (sameas(margv[0], "h")) {
             do_news();
         }
+        else if (sameas(margv[0], "p")) {
+            if (margc > 1)
+                do_hire(&me, margv[1]);      /* "P n" recruits a worker     */
+            else
+                do_crew(&me);                /* "P" shows the crew screen   */
+        }
         else if (sameas(margv[0], "t")) {
             prfmsg(STATUS, me.userid, me.fame, me.actpts,
                    me.explores, me.discoveries, (INT)me.posx, (INT)me.posy,
@@ -466,6 +563,7 @@ VOID EXPORT
 user_deleted(CHAR *userid)
 {
     pl_delete(userid);
+    wrk_delete(userid);
 }
 
 /* ---------------------------------------------------------------------- *
@@ -504,6 +602,7 @@ system_shutdown(VOID)
     pl_close();
     hist_close();
     wx_close();
+    wrk_close();
     clsmsg(fracmb);
 }
 

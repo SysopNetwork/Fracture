@@ -45,3 +45,17 @@
 /* entry 49 is a LEVEL6 marker (weather text)                              */
 #define WXLINE     50   /* T  - daily weather/season line (%s name, %s     */
                         /*      flavor, %s season)                         */
+/* entry 51 is a LEVEL4 marker (workers & production config)               */
+#define WRKOPT     52   /* B  - sysop option: enable workers & production  */
+#define WRKPROD    53   /* N  - sysop option: units per worker per day     */
+#define WRKFOOD    54   /* N  - sysop option: Food per worker per day       */
+/* entry 55 is a LEVEL6 marker (worker text)                               */
+#define CREWHD     56   /* T  - crew screen frame/header                   */
+#define CREWFT     57   /* T  - crew footer (%d used, %d cap, %d wood cost, */
+                        /*      %d food cost)                              */
+#define HIRED      58   /* T  - recruited a worker (%s worker name)        */
+#define HIREFUL    59   /* T  - crew at camp capacity                      */
+#define HIRECST    60   /* T  - cannot afford (%d wood cost, %d food cost) */
+#define HIREBAD    61   /* T  - invalid worker selection                   */
+#define PRODSUM    62   /* T  - daily production summary (%d total gained)  */
+#define PRODHUN    63   /* T  - some workers went hungry (no Food)          */

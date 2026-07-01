@@ -20,6 +20,7 @@
 
 const CHAR *camp_name(INT level);      /* tier display name                  */
 LONG        camp_storage(INT level);   /* per-resource storage capacity      */
+INT         camp_workers(INT level);   /* worker capacity unlocked by tier   */
 
 /* Fill cost[] with the resources needed to upgrade from `level` to the next */
 /* tier. Returns FALSE (and zeroes cost[]) when already at the maximum tier. */

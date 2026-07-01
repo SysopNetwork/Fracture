@@ -42,6 +42,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   world.
 
 ### Added
+- Workers and passive production (`WORKER.C`/`.H`): players house a crew of NPC
+  workers at their camp who produce resources on their own — one day's worth for
+  each new day the player logs in. Five worker types each work one resource
+  (Forester→Wood, Miner→Stone, Prospector→Metal, Farmer→Food, Water Carrier→Water).
+  A new crew screen (**P**) shows the roster and capacity; **P 1**..**P 5** recruits
+  a worker for a Wood+Food cost. Camp tier caps crew size (Tent houses none, up to
+  16 at a Citadel), giving upgrades a second purpose. The day's weather scales
+  output and the whole crew eats Food, so a lean larder or a heat wave bites into
+  production. Crew rosters live in a fifth Btrieve file (`FRACWRK.DAT`, one record
+  per player). Sysop options: `WRKOPT` (on/off), `WRKPROD` (units per worker per
+  day), `WRKFOOD` (Food per worker per day). ADR 0010 records the model.
 - Weather and seasons (`WEATHER.C`/`.H`): one server-wide weather condition per
   day (Clear, Rain, Fog, Storm, Snow, Heat Wave), rolled at midnight and biased by
   a four-season cycle (Spring → Summer → Autumn → Winter). Weather is more than
