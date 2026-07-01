@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Changed
+- The midnight cleanup routine now advances weather and seasons alongside the
+  world's terrain evolution, and logs a second audit-trail line naming the new
+  day's condition and season (summary `Fracture's skies have turned`).
 - The boot-time audit-trail entry now has personality: the console summary reads
   `Fracture's here. Act impressed.` with detail
   `Fracture v1.0.0 just joined the chat! Hold my juicebox.` (was just `Fracture`).
@@ -30,6 +33,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   world.
 
 ### Added
+- Weather and seasons (`WEATHER.C`/`.H`): one server-wide weather condition per
+  day (Clear, Rain, Fog, Storm, Snow, Heat Wave), rolled at midnight and biased by
+  a four-season cycle (Spring → Summer → Autumn → Winter). Weather is more than
+  flavor — rain makes gathering generous while fog, snow, heat, and storms make it
+  stingy, and storms and snow add an Action Point to the cost of travel. The
+  current condition and season are shown on entry, on the status screen (**T**),
+  and with the news (**H**). State lives in a fourth Btrieve file (`FRACWX.DAT`, a
+  single record) and catches up lazily if a midnight was missed. Sysop options:
+  `WXOPT` (master on/off, default YES) and `SEASLEN` (days per season, default 7,
+  1..90). ADR 0008 records the model.
 - Arrival quips: returning players are greeted on entry with one of a dozen
   short, irreverent one-liners chosen at random (sysop-editable as `QUIP1`..`QUIP12`
   text blocks; add or reword freely). New explorers still get the first-time intro.

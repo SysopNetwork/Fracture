@@ -36,6 +36,9 @@
     <ClInclude Include="HISTORY.H">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="WEATHER.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FRACTURE.C">
@@ -54,6 +57,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HISTORY.C">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WEATHER.C">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

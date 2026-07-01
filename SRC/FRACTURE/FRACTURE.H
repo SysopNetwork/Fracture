@@ -39,3 +39,9 @@
 /* entry 33 is a LEVEL6 marker (arrival quips)                             */
 #define QUIP1      34   /* T  - first arrival quip; QUIP1..QUIPN are a     */
 #define QUIPN      45   /* T  - contiguous pool, one shown at random       */
+/* entry 46 is a LEVEL4 marker (weather & seasons config)                  */
+#define WXOPT      47   /* B  - sysop option: enable weather & seasons     */
+#define SEASLEN    48   /* N  - sysop option: days per season (1..90)      */
+/* entry 49 is a LEVEL6 marker (weather text)                              */
+#define WXLINE     50   /* T  - daily weather/season line (%s name, %s     */
+                        /*      flavor, %s season)                         */

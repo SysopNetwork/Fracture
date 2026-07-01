@@ -26,6 +26,7 @@
 #include "RESOURCE.H"
 #include "CAMP.H"
 #include "HISTORY.H"
+#include "WEATHER.H"
 
 /* ---- forward declarations -------------------------------------------- */
 GBOOL user_logon(VOID);              /* per-user logon supplemental routine  */
@@ -37,6 +38,7 @@ VOID  do_look(struct fracplyr *p);   /* show the local map and tile          */
 VOID  do_camp(struct fracplyr *p);   /* show the camp and its next upgrade   */
 VOID  do_upgrade(struct fracplyr *p);/* spend resources to upgrade the camp  */
 VOID  do_news(VOID);                 /* show the server-wide news chronicle  */
+VOID  show_weather(VOID);            /* print today's weather/season line    */
 VOID  world_midnight(VOID);          /* midnight cleanup: evolve the world   */
 VOID  system_shutdown(VOID);         /* finish-up (system shutdown) routine  */
 VOID  end_fracture(VOID);            /* empty marker to aid crash analysis   */
@@ -63,6 +65,8 @@ INT      daily_ap;                   /* sysop option: Action Points per day  */
 INT      world_sz;                   /* sysop option: world dimension        */
 INT      regen_pct;                  /* sysop option: % unexplored tiles     */
                                      /* regenerated each midnight            */
+GBOOL    weather_on;                 /* sysop option: weather & seasons?     */
+INT      season_len;                 /* sysop option: days per season        */
 
 /* ---------------------------------------------------------------------- *
  * init__fracture                                                         *
@@ -81,10 +85,13 @@ init__fracture(VOID)
     daily_ap     = numopt(DAYAP, 1, 200);
     world_sz     = numopt(WLDSIZ, 8, WLDMAX);
     regen_pct    = numopt(REGENPCT, 0, 100);
+    weather_on   = ynopt(WXOPT);
+    season_len   = numopt(SEASLEN, 1, 90);
 
     pl_open();                       /* persistent players                   */
     wld_open(world_sz);              /* the map (generated on first run)     */
     hist_open();                     /* the shared server chronicle          */
+    wx_open(weather_on, season_len); /* today's weather and the season cycle */
 
     /* summary <= 32 chars, detail <= 63 - both show on the audit trail     */
     shocst("Fracture's here. Act impressed.",
@@ -164,8 +171,9 @@ VOID EXPORT
 do_move(struct fracplyr *p, INT dx, INT dy)
 {
     INT nx, ny;
+    INT cost = wx_travcost();            /* storms and snow raise the toll   */
 
-    if (p->actpts <= 0) {
+    if (p->actpts < cost) {
         prfmsg(NOAP);
         return;
     }
@@ -177,7 +185,7 @@ do_move(struct fracplyr *p, INT dx, INT dy)
         return;
     }
 
-    p->actpts--;
+    p->actpts -= cost;
     p->posx = (UCHAR)nx;
     p->posy = (UCHAR)ny;
     pl_write(p);
@@ -222,7 +230,8 @@ do_search(struct fracplyr *p)
     }
 
     res_yield(t.terrain, &rtype, &ramt);
-    if (ramt > 0) {
+    ramt = wx_yield(ramt);                /* weather makes the land generous */
+    if (ramt > 0) {                       /* or stingy for the day           */
         LONG cap    = camp_storage(p->camplvl);
         LONG before = p->res[rtype];
         p->res[rtype] += ramt;
@@ -311,6 +320,26 @@ VOID EXPORT
 do_news(VOID)
 {
     hist_news(NEWSMAX);
+    show_weather();                      /* today's forecast under the news  */
+}
+
+/* ---------------------------------------------------------------------- *
+ * show_weather                                                           *
+ *                                                                        *
+ * Print the one-line report of today's weather and the current season.   *
+ * Silent when the sysop has weather disabled. The caller must already     *
+ * have selected the module message block (setmbk).                        *
+ * ---------------------------------------------------------------------- */
+VOID EXPORT
+show_weather(VOID)
+{
+    INT wx;
+
+    if (!wx_enabled())
+        return;
+
+    wx = wx_weather();
+    prfmsg(WXLINE, wx_wname(wx), wx_wdesc(wx), wx_sname(wx_season()));
 }
 
 /* ---------------------------------------------------------------------- *
@@ -364,6 +393,7 @@ module_main(VOID)
             prfmsg(FIRSTM);                  /* new explorers get the intro */
         else
             prfmsg((INT)lngrnd(QUIP1, QUIPN));/* veterans get a random quip */
+        show_weather();                      /* then today's forecast       */
         prfmsg(usrptr->substt = MAINMEN);
         break;
 
@@ -415,6 +445,7 @@ module_main(VOID)
                    camp_name(me.camplvl), camp_storage(me.camplvl),
                    me.res[RES_WOOD], me.res[RES_STONE], me.res[RES_METAL],
                    me.res[RES_FOOD], me.res[RES_WATER]);
+            show_weather();                  /* today's forecast on status   */
         }
         else {
             prfmsg(INVALID);
@@ -453,6 +484,14 @@ world_midnight(VOID)
     shocst("Fracture reshuffled the world",
            "%d unexplored tile(s) reborn in the dark while you slept.",
            changed);
+
+    /* Roll the new day's weather and age the season on the same tick.       */
+    if (weather_on) {
+        wx_advance();
+        shocst("Fracture's skies have turned",
+               "%s dawns over the %s world today.",
+               wx_wname(wx_weather()), wx_sname(wx_season()));
+    }
 }
 
 /* ---------------------------------------------------------------------- *
@@ -464,6 +503,7 @@ system_shutdown(VOID)
     wld_close();
     pl_close();
     hist_close();
+    wx_close();
     clsmsg(fracmb);
 }
 

@@ -109,6 +109,7 @@
     <ClInclude Include="RESOURCE.H" />
     <ClInclude Include="CAMP.H" />
     <ClInclude Include="HISTORY.H" />
+    <ClInclude Include="WEATHER.H" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FRACTURE.C" />
@@ -117,6 +118,7 @@
     <ClCompile Include="RESOURCE.C" />
     <ClCompile Include="CAMP.C" />
     <ClCompile Include="HISTORY.C" />
+    <ClCompile Include="WEATHER.C" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="FRACTURE.rc" />
