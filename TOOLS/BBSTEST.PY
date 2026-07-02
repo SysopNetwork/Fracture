@@ -277,7 +277,8 @@ def main():
         screens = {}
         for cmd, label in [("T", "status"), ("L", "look/map"), ("N", "move north"),
                            ("R", "search"), ("C", "camp"), ("P", "crew"),
-                           ("H", "news"), ("T", "status-2")]:
+                           ("M", "market"), ("M S 5 1", "sell"), ("H", "news"),
+                           ("T", "status-2")]:
             screens[label] = run_cmd(ses, cmd, label)
             fracture_log += screens[label]
             print("  ran %-10s (%d chars)" % (cmd, len(screens[label])))
@@ -294,6 +295,11 @@ def main():
         check("camp screen", "CAMP" in screens.get("camp", "").upper())
         check("crew screen", "CREW" in screens.get("crew", "").upper())
         check("news chronicle", "CHRONICLE" in blob.upper() or "chronicle" in blob)
+        mkt = screens.get("market", "")
+        check("market screen", "TRADING POST" in mkt and "sell" in mkt and "buy" in mkt)
+        check("market trade responds",
+              any(t in screens.get("sell", "")
+                  for t in ("Sold", "do not have", "valid trade", "full", "Fame")))
         check("NO (N)onstop pause inside game", not PAUSE_SEEN,
               "more-prompt fired on: %s (nonstop fix not deployed?)"
               % ", ".join(PAUSE_SEEN) if PAUSE_SEEN else "")

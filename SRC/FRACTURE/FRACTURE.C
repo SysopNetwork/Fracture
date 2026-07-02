@@ -28,6 +28,7 @@
 #include "HISTORY.H"
 #include "WEATHER.H"
 #include "WORKER.H"
+#include "MARKET.H"
 
 /* ---- forward declarations -------------------------------------------- */
 GBOOL user_logon(VOID);              /* per-user logon supplemental routine  */
@@ -44,6 +45,8 @@ VOID  do_upgrade(struct fracplyr *p);/* spend resources to upgrade the camp  */
 VOID  do_news(VOID);                 /* show the server-wide news chronicle  */
 VOID  do_crew(struct fracplyr *p);   /* show the crew & production screen     */
 VOID  do_hire(struct fracplyr *p, CHAR *sel); /* recruit a worker by number   */
+VOID  do_market(struct fracplyr *p); /* show the trading post prices          */
+VOID  do_trade(struct fracplyr *p);  /* sell/buy at the trading post          */
 VOID  show_weather(VOID);            /* print today's weather/season line    */
 VOID  world_midnight(VOID);          /* midnight cleanup: evolve the world   */
 VOID  system_shutdown(VOID);         /* finish-up (system shutdown) routine  */
@@ -76,6 +79,9 @@ INT      season_len;                 /* sysop option: days per season        */
 GBOOL    workers_on;                 /* sysop option: workers & production?  */
 INT      wrk_prod;                   /* sysop option: units per worker/day   */
 INT      wrk_food;                   /* sysop option: Food per worker/day    */
+GBOOL    market_on;                  /* sysop option: trading post?          */
+INT      mkt_sell;                   /* sysop option: Fame per unit sold     */
+INT      mkt_buy;                    /* sysop option: Fame per unit bought   */
 
 /* Fracture paints its own full-screen pages, so while a user is in the game *
  * we suppress the host's output more-prompt ("(N)onstop,(Q)uit,(C)ontinue?")*
@@ -107,12 +113,16 @@ init__fracture(VOID)
     workers_on   = ynopt(WRKOPT);
     wrk_prod     = numopt(WRKPROD, 0, 50);
     wrk_food     = numopt(WRKFOOD, 0, 50);
+    market_on    = ynopt(MKTOPT);
+    mkt_sell     = numopt(MKTSELL, 0, 100);
+    mkt_buy      = numopt(MKTBUY, 0, 100);
 
     pl_open();                       /* persistent players                   */
     wld_open(world_sz);              /* the map (generated on first run)     */
     hist_open();                     /* the shared server chronicle          */
     wx_open(weather_on, season_len); /* today's weather and the season cycle */
     wrk_open(workers_on, wrk_prod, wrk_food); /* the crew / production system */
+    market_open(market_on, mkt_sell, mkt_buy); /* the trading post exchange   */
 
     /* summary <= 32 chars, detail <= 63 - both show on the audit trail     */
     shocst("Fracture's here. Act impressed.",
@@ -475,6 +485,105 @@ do_hire(struct fracplyr *p, CHAR *sel)
 }
 
 /* ---------------------------------------------------------------------- *
+ * do_market                                                              *
+ *                                                                        *
+ * Show the trading post: one row per resource with its sell and buy      *
+ * price and how much the player is holding, then the player's Fame and    *
+ * the trade commands. Rows are drawn here (like the crew screen) because   *
+ * the prices are dynamic; the frame and footer come from the message file. *
+ * ---------------------------------------------------------------------- */
+VOID EXPORT
+do_market(struct fracplyr *p)
+{
+    INT i;
+
+    if (!market_enabled()) {
+        prf("\x1b[2J\r\n  \x1b[1;31mThe trading post is closed here.\x1b[0;37m\r\n");
+        return;
+    }
+
+    prfmsg(MARKHD);
+    for (i = 0; i < RES_COUNT; i++) {
+        prf("  \x1b[1;33m[%d]\x1b[0;37m \x1b[1;37m%-7s\x1b[0;37m   "
+            "sell \x1b[1;32m%ld\x1b[0;37m   buy \x1b[1;33m%ld\x1b[0;37m"
+            "   you have \x1b[1;37m%ld\x1b[0;37m\r\n",
+            i + 1, res_name(i),
+            market_sellprice(i), market_buyprice(i), p->res[i]);
+    }
+    prfmsg(MARKFT, p->fame);
+}
+
+/* Parse a non-negative quantity from a command word (digits only).       */
+static LONG
+trade_qty(const CHAR *s)
+{
+    LONG v = 0;
+    if (s == NULL)
+        return 0;
+    while (*s >= '0' && *s <= '9') {
+        v = v * 10 + (*s - '0');
+        s++;
+    }
+    return v;
+}
+
+/* ---------------------------------------------------------------------- *
+ * do_trade                                                               *
+ *                                                                        *
+ * Settle a trade from the "M s|b n q" command: side (sell/buy), resource  *
+ * selector 1..RES_COUNT, and quantity. Reports the outcome and saves the   *
+ * player on a completed trade.                                             *
+ * ---------------------------------------------------------------------- */
+VOID EXPORT
+do_trade(struct fracplyr *p)
+{
+    INT  restype, rc;
+    LONG qty, fame, got;
+    CHAR side;
+
+    /* need four words: M <s|b> <1-RES_COUNT> <qty>                        */
+    if (!market_enabled() || margc < 4 ||
+        margv[2][0] < '1' || margv[2][0] > '0' + RES_COUNT) {
+        prfmsg(MKTBADR);
+        return;
+    }
+    side    = (CHAR)(margv[1][0] | 0x20);     /* fold to lower case         */
+    restype = margv[2][0] - '1';
+    qty     = trade_qty(margv[3]);
+    if (qty <= 0) {
+        prfmsg(MKTBADR);
+        return;
+    }
+
+    if (side == 's') {
+        rc = market_sell(p, restype, qty, &fame);
+        switch (rc) {
+        case MKT_OK:
+            pl_write(p);
+            prfmsg(SOLD, qty, res_name(restype), fame);
+            break;
+        case MKT_NORES:  prfmsg(MKTNORE); break;
+        default:         prfmsg(MKTBADR); break;
+        }
+    }
+    else if (side == 'b') {
+        rc = market_buy(p, restype, qty, &got, &fame);
+        switch (rc) {
+        case MKT_OK:
+            pl_write(p);
+            prfmsg(BOUGHT, got, res_name(restype), fame);
+            break;
+        case MKT_FULL:   prfmsg(MKTFULL); break;
+        case MKT_NOFAME: prfmsg(MKTNOFA); break;
+        default:         prfmsg(MKTBADR); break;
+        }
+    }
+    else {
+        prfmsg(MKTBADR);
+    }
+}
+
+/* ---------------------------------------------------------------------- *
  * module_main                                                            *
  *                                                                        *
  * Per-user menu state machine. The player's record is loaded fresh each  *
@@ -590,6 +699,12 @@ module_main(VOID)
                 do_hire(&me, margv[1]);      /* "P n" recruits a worker     */
             else
                 do_crew(&me);                /* "P" shows the crew screen   */
+        }
+        else if (sameas(margv[0], "m")) {
+            if (margc > 1)
+                do_trade(&me);               /* "M s/b n q" trades          */
+            else
+                do_market(&me);              /* "M" shows the trading post  */
         }
         else if (sameas(margv[0], "t")) {
             prfmsg(STATUS, me.userid, me.fame, me.actpts,

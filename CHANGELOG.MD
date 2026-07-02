@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Changed
+- The screens were widened to use the full 80-column display: banners, rules, and
+  the menu tab bar now span ~74 columns (was 52), the tabs are spread out, and the
+  status and camp screens gained a blank line above and below their fields. Message
+  names, types, and argument order were preserved.
 - Visual overhaul: every player-facing screen was restyled in a consistent
   shaded block-art ANSI look (CP437 `░▒▓█` banners and gradient rules, `▐▌`
   half-block menu tabs, a fixed cyan/white/yellow palette). The main menu,
@@ -29,6 +33,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   verifiable).
 
 ### Fixed
+- The host's output more-prompt (`(N)onstop, (Q)uit, or (C)ontinue?`) could
+  interrupt the game's own full-screen redraws for users with a short screen-pause
+  length, because the line counter carries across screen clears. The module now
+  runs nonstop while a player is in the game and restores their setting on exit,
+  logoff, or hangup, so screens no longer page mid-draw.
+- Pressing Enter at the main prompt drew the menu — and the `Choose:` line —
+  twice. The empty-input case now relies on the single shared prompt redraw like
+  every other command path.
 - The first-time welcome (`FIRSTM`) was being wiped immediately by the main
   menu's screen-clear, so it never showed. The menu no longer clears the screen
   itself (the entry message clears instead), so the welcome — and the new
@@ -42,6 +54,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   world.
 
 ### Added
+- Trading post (`MARKET.C`/`.H`): a server-wide exchange for turning resources into
+  Fame and back. **M** shows the post — a sell and buy price per resource (each
+  weighted by scarcity: Metal ×3, Food ×2, the rest ×1) and how much you hold;
+  **M S n q** sells and **M B n q** buys (n = 1–5, q = amount). Selling earns Fame,
+  buying spends it, with the buy rate kept at or above the sell rate so trading is
+  never a free source of Fame, and buys are capped by Fame on hand and camp storage.
+  Fame is now spendable and resources have a floor value. No new data file — trades
+  settle at once against the acting player. Sysop options: `MKTOPT` (on/off),
+  `MKTSELL` (base Fame per unit sold, default 2), `MKTBUY` (base Fame per unit
+  bought, default 3). ADR 0011 records the model.
 - Workers and passive production (`WORKER.C`/`.H`): players house a crew of NPC
   workers at their camp who produce resources on their own — one day's worth for
   each new day the player logs in. Five worker types each work one resource

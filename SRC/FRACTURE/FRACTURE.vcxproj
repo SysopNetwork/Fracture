@@ -111,6 +111,7 @@
     <ClInclude Include="HISTORY.H" />
     <ClInclude Include="WEATHER.H" />
     <ClInclude Include="WORKER.H" />
+    <ClInclude Include="MARKET.H" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FRACTURE.C" />
@@ -121,6 +122,7 @@
     <ClCompile Include="HISTORY.C" />
     <ClCompile Include="WEATHER.C" />
     <ClCompile Include="WORKER.C" />
+    <ClCompile Include="MARKET.C" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="FRACTURE.rc" />

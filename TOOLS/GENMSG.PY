@@ -54,6 +54,7 @@ _menu += IND + tab('R', '       Search the ground  (1 AP)') + '\r\n'
 _menu += IND + tab('L', '       Look around (local map)') + '\r\n'
 _menu += IND + tab('C', '       Camp - view and build it up') + '\r\n'
 _menu += IND + tab('P', '       Crew - workers & production') + '\r\n'
+_menu += IND + tab('M', '       Market - trade resources for Fame') + '\r\n'
 _menu += IND + tab('H', '       News & the world chronicle') + '\r\n'
 _menu += IND + tab('T', '       Explorer status') + '\r\n'
 _menu += IND + tab('X', '       Exit to the BBS') + '\r\n'
@@ -62,7 +63,8 @@ MAINMEN = T('MAINMEN', _menu, 'Main menu')
 
 _gap = '    '                 # wider gaps spread the tab bar across the screen
 _short  = IND + tab('N S E W','Travel') + _gap + tab('R','Search') + _gap + tab('L','Look') + _gap + tab('C','Camp') + '\r\n'
-_short += IND + tab('P','Crew') + _gap + tab('H','News') + _gap + tab('T','Status') + _gap + tab('X','Exit') + _gap + tab('?','Menu') + '\r\n'
+_short += IND + tab('P','Crew') + _gap + tab('M','Market') + _gap + tab('H','News') + _gap + tab('T','Status') + '\r\n'
+_short += IND + tab('X','Exit') + _gap + tab('?','Menu') + '\r\n'
 _short += IND + WHT + 'Choose: ' + RST
 SHORTM = T('SHORTM', _short, 'Short menu')
 
@@ -214,6 +216,43 @@ PRODHUN = T('PRODHUN',
     IND + RED+RHB + RST + ' ' + RED + 'Some workers went hungry - keep Food in storage.' + RST + '\r\n',
     'Workers hungry')
 
+# --- market / trading post ---
+MARKHD = T('MARKHD',
+    CLR + '\r\n' + sect('TRADING POST') + '\r\n' + rule() + '\r\n' + RST,
+    'Market screen header')
+
+# MARKFT - specifier: %ld (player's Fame)
+MARKFT = T('MARKFT',
+    rule() + '\r\n' + IND + GRY + 'Your Fame: ' + YEL + '%ld' + RST + '\r\n'
+    + IND + GRY + 'Sell with ' + WHT+RHB+' M S n q '+LHB + GRY + '   Buy with ' + WHT+RHB+' M B n q '+LHB + GRY + '   (n = 1-5, q = amount)' + RST + '\r\n' + RST,
+    'Market footer')
+
+# SOLD - specifiers: %ld qty, %s resource, %ld fame
+SOLD = T('SOLD',
+    IND + GRN+DS+MS+LS + RST + ' ' + GRY + 'Sold ' + WHT + '%ld' + GRY + ' %s for ' + YEL + '+%ld Fame' + GRY + '.' + RST + '\r\n',
+    'Sold at market')
+
+# BOUGHT - specifiers: %ld qty, %s resource, %ld fame
+BOUGHT = T('BOUGHT',
+    IND + MAG+DS+MS+LS + RST + ' ' + GRY + 'Bought ' + WHT + '%ld' + GRY + ' %s for ' + YEL + '-%ld Fame' + GRY + '.' + RST + '\r\n',
+    'Bought at market')
+
+MKTFULL = T('MKTFULL',
+    IND + RED+RHB + RST + ' ' + RED + 'Your camp storage for that resource is already full.' + RST + '\r\n',
+    'Market - storage full')
+
+MKTNORE = T('MKTNORE',
+    IND + RED+RHB + RST + ' ' + RED + 'You do not have that much to sell.' + RST + '\r\n',
+    'Market - not enough resource')
+
+MKTNOFA = T('MKTNOFA',
+    IND + RED+RHB + RST + ' ' + RED + 'You do not have enough Fame to buy any.' + RST + '\r\n',
+    'Market - not enough Fame')
+
+MKTBADR = T('MKTBADR',
+    IND + RED+RHB + RST + ' ' + RED + 'That is not a valid trade. Use ' + WHT + 'M S 3 10' + RED + ' to sell, ' + WHT + 'M B 3 10' + RED + ' to buy.' + RST + '\r\n',
+    'Market - bad trade')
+
 # --- arrival quips (restyled, keep [2J and one per entry) ---
 QUIP_TEXT = [
     '"Finally, I\'m here."',
@@ -334,6 +373,31 @@ out.append('')
 out.append('LEVEL6 {Fracture: worker text}')
 out.append('')
 for m in [CREWHD, CREWFT, HIRED, HIREFUL, HIRECST, HIREBAD, PRODSUM, PRODHUN]:
+    out.append(m.rstrip('\r\n'))
+    out.append('')
+
+# --- config: trading post ---
+out.append('LEVEL4 {Fracture: trading post}')
+out.append('')
+out.append(' Turn the trading post on or off. When on, players can sell')
+out.append(' gathered resources for Fame and buy resources back with Fame at')
+out.append(' the rates below (each scaled by how scarce the resource is).')
+out.append('')
+out.append('MKTOPT {Enable the trading post? YES} B')
+out.append('')
+out.append(' Base Fame earned for each unit of a resource sold, before the')
+out.append(' per-resource weight is applied.')
+out.append('')
+out.append('MKTSELL {Fame earned per resource unit sold? 2} N 0 100')
+out.append('')
+out.append(' Base Fame charged for each unit of a resource bought. Keep this at')
+out.append(' or above the sell rate so trading is not a free source of Fame.')
+out.append('')
+out.append('MKTBUY {Fame charged per resource unit bought? 3} N 0 100')
+out.append('')
+out.append('LEVEL6 {Fracture: market text}')
+out.append('')
+for m in [MARKHD, MARKFT, SOLD, BOUGHT, MKTFULL, MKTNORE, MKTNOFA, MKTBADR]:
     out.append(m.rstrip('\r\n'))
     out.append('')
 
