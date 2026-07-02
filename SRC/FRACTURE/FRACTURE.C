@@ -550,7 +550,8 @@ module_main(VOID)
             return 0;
         }
         else if (sameas(margv[0], "\0") || sameas(margv[0], "")) {
-            prfmsg(SHORTM);
+            /* bare Enter: fall through and let the prompt below redraw once  *
+             * (printing SHORTM here too would double the menu)               */
         }
         else if (sameas(margv[0], "?")) {
             prf("\x1b[2J");                  /* MAINMEN no longer self-clears */
