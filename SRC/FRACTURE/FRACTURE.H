@@ -67,5 +67,11 @@
 #define MKTNORE    74
 #define MKTNOFA    75
 #define MKTBADR    76
+#define RSCHOPT    78
+#define RSCHHD     80
+#define RSCHFT     81
+#define RSCHUP     82
+#define RSCHMAX    83
+#define RSCHNOR    84
 
 #define QUIPN      45      /* last arrival quip (lngrnd upper bound) */

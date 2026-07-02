@@ -55,6 +55,7 @@ _menu += IND + tab('L', '       Look around (local map)') + '\r\n'
 _menu += IND + tab('C', '       Camp - view and build it up') + '\r\n'
 _menu += IND + tab('P', '       Crew - workers & production') + '\r\n'
 _menu += IND + tab('M', '       Market - trade resources for Fame') + '\r\n'
+_menu += IND + tab('K', '       Research - permanent skill upgrades') + '\r\n'
 _menu += IND + tab('H', '       News & the world chronicle') + '\r\n'
 _menu += IND + tab('T', '       Explorer status') + '\r\n'
 _menu += IND + tab('X', '       Exit to the BBS') + '\r\n'
@@ -63,8 +64,8 @@ MAINMEN = T('MAINMEN', _menu, 'Main menu')
 
 _gap = '    '                 # wider gaps spread the tab bar across the screen
 _short  = IND + tab('N S E W','Travel') + _gap + tab('R','Search') + _gap + tab('L','Look') + _gap + tab('C','Camp') + '\r\n'
-_short += IND + tab('P','Crew') + _gap + tab('M','Market') + _gap + tab('H','News') + _gap + tab('T','Status') + '\r\n'
-_short += IND + tab('X','Exit') + _gap + tab('?','Menu') + '\r\n'
+_short += IND + tab('P','Crew') + _gap + tab('M','Market') + _gap + tab('K','Research') + _gap + tab('H','News') + '\r\n'
+_short += IND + tab('T','Status') + _gap + tab('X','Exit') + _gap + tab('?','Menu') + '\r\n'
 _short += IND + WHT + 'Choose: ' + RST
 SHORTM = T('SHORTM', _short, 'Short menu')
 
@@ -253,6 +254,30 @@ MKTBADR = T('MKTBADR',
     IND + RED+RHB + RST + ' ' + RED + 'That is not a valid trade. Use ' + WHT + 'M S 3 10' + RED + ' to sell, ' + WHT + 'M B 3 10' + RED + ' to buy.' + RST + '\r\n',
     'Market - bad trade')
 
+# --- research track ---
+RSCHHD = T('RSCHHD',
+    CLR + '\r\n' + sect('RESEARCH BENCH') + '\r\n' + rule() + '\r\n' + RST,
+    'Research screen header')
+
+# RSCHFT - specifiers: %ld Wood, %ld Stone, %ld Metal (next tier cost)
+RSCHFT = T('RSCHFT',
+    rule() + '\r\n' + IND + GRY + 'Next tier costs ' + YEL + '%ld' + GRY + ' Wood  ' + YEL + '%ld' + GRY + ' Stone  ' + YEL + '%ld' + GRY + ' Metal.' + RST + '\r\n'
+    + IND + GRY + 'Research it with ' + WHT+RHB+' K R '+LHB + RST + '\r\n' + RST,
+    'Research footer')
+
+# RSCHUP - specifiers: %s tier name, %d gather pct
+RSCHUP = T('RSCHUP',
+    IND + MAG+DS+MS+LS + ' RESEARCHED! ' + RST + GRY + 'You reach ' + WHT + '%s' + GRY + '.  Gather bonus now ' + GRN + '+%d%%' + GRY + '.' + RST + '\r\n',
+    'Research advanced')
+
+RSCHMAX = T('RSCHMAX',
+    IND + MAG+DS+MS+LS + RST + ' ' + MAG + 'Research complete - you have mastered every field.' + RST + '\r\n' + RST,
+    'Research maxed')
+
+RSCHNOR = T('RSCHNOR',
+    IND + RED+RHB + RST + ' ' + RED + 'You do not have the resources for the next tier yet.' + RST + '\r\n',
+    'Research - cannot afford')
+
 # --- arrival quips (restyled, keep [2J and one per entry) ---
 QUIP_TEXT = [
     '"Finally, I\'m here."',
@@ -398,6 +423,21 @@ out.append('')
 out.append('LEVEL6 {Fracture: market text}')
 out.append('')
 for m in [MARKHD, MARKFT, SOLD, BOUGHT, MKTFULL, MKTNORE, MKTNOFA, MKTBADR]:
+    out.append(m.rstrip('\r\n'))
+    out.append('')
+
+# --- config: research ---
+out.append('LEVEL4 {Fracture: research}')
+out.append('')
+out.append(' Turn the research track on or off. When on, players spend gathered')
+out.append(' resources to advance research tiers, each of which permanently')
+out.append(' raises how much searching yields and, higher up, cheapens travel.')
+out.append('')
+out.append('RSCHOPT {Enable the research track? YES} B')
+out.append('')
+out.append('LEVEL6 {Fracture: research text}')
+out.append('')
+for m in [RSCHHD, RSCHFT, RSCHUP, RSCHMAX, RSCHNOR]:
     out.append(m.rstrip('\r\n'))
     out.append('')
 

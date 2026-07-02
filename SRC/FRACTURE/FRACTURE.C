@@ -29,6 +29,7 @@
 #include "WEATHER.H"
 #include "WORKER.H"
 #include "MARKET.H"
+#include "RESEARCH.H"
 
 /* ---- forward declarations -------------------------------------------- */
 GBOOL user_logon(VOID);              /* per-user logon supplemental routine  */
@@ -47,6 +48,8 @@ VOID  do_crew(struct fracplyr *p);   /* show the crew & production screen     */
 VOID  do_hire(struct fracplyr *p, CHAR *sel); /* recruit a worker by number   */
 VOID  do_market(struct fracplyr *p); /* show the trading post prices          */
 VOID  do_trade(struct fracplyr *p);  /* sell/buy at the trading post          */
+VOID  do_research(struct fracplyr *p);/* show the research track              */
+VOID  do_advance(struct fracplyr *p); /* advance to the next research tier    */
 VOID  show_weather(VOID);            /* print today's weather/season line    */
 VOID  world_midnight(VOID);          /* midnight cleanup: evolve the world   */
 VOID  system_shutdown(VOID);         /* finish-up (system shutdown) routine  */
@@ -82,6 +85,7 @@ INT      wrk_food;                   /* sysop option: Food per worker/day    */
 GBOOL    market_on;                  /* sysop option: trading post?          */
 INT      mkt_sell;                   /* sysop option: Fame per unit sold     */
 INT      mkt_buy;                    /* sysop option: Fame per unit bought   */
+GBOOL    research_on;                /* sysop option: research track?        */
 
 /* Fracture paints its own full-screen pages, so while a user is in the game *
  * we suppress the host's output more-prompt ("(N)onstop,(Q)uit,(C)ontinue?")*
@@ -116,6 +120,7 @@ init__fracture(VOID)
     market_on    = ynopt(MKTOPT);
     mkt_sell     = numopt(MKTSELL, 0, 100);
     mkt_buy      = numopt(MKTBUY, 0, 100);
+    research_on  = ynopt(RSCHOPT);
 
     pl_open();                       /* persistent players                   */
     wld_open(world_sz);              /* the map (generated on first run)     */
@@ -123,6 +128,7 @@ init__fracture(VOID)
     wx_open(weather_on, season_len); /* today's weather and the season cycle */
     wrk_open(workers_on, wrk_prod, wrk_food); /* the crew / production system */
     market_open(market_on, mkt_sell, mkt_buy); /* the trading post exchange   */
+    rsch_open(research_on);          /* the research knowledge track          */
 
     /* summary <= 32 chars, detail <= 63 - both show on the audit trail     */
     shocst("Fracture's here. Act impressed.",
@@ -245,6 +251,10 @@ do_move(struct fracplyr *p, INT dx, INT dy)
     INT nx, ny;
     INT cost = wx_travcost();            /* storms and snow raise the toll   */
 
+    cost -= rsch_travel_disc((INT)p->rschlvl);  /* research cheapens travel  */
+    if (cost < 1)
+        cost = 1;                        /* a move always costs at least 1    */
+
     if (p->actpts < cost) {
         prfmsg(NOAP);
         return;
@@ -303,6 +313,7 @@ do_search(struct fracplyr *p)
 
     res_yield(t.terrain, &rtype, &ramt);
     ramt = wx_yield(ramt);                /* weather makes the land generous */
+    ramt = (INT)rsch_gather((INT)p->rschlvl, ramt); /* research lifts the haul */
     if (ramt > 0) {                       /* or stingy for the day           */
         LONG cap    = camp_storage(p->camplvl);
         LONG before = p->res[rtype];
@@ -584,6 +595,66 @@ do_trade(struct fracplyr *p)
 }
 
 /* ---------------------------------------------------------------------- *
+ * do_research                                                            *
+ *                                                                        *
+ * Show the research track: every tier with its gather bonus and travel    *
+ * discount, a marker on the tier the player has reached, and the resource  *
+ * cost of the next tier (or a note when fully researched). The rows are     *
+ * drawn in C because they are dynamic; the frame comes from the messages.   *
+ * ---------------------------------------------------------------------- */
+VOID EXPORT
+do_research(struct fracplyr *p)
+{
+    LONG cost[RES_COUNT];
+    INT  lvl, i;
+
+    if (!rsch_enabled()) {
+        prf("\x1b[2J\r\n  \x1b[1;31mThe research bench is closed here.\x1b[0;37m\r\n");
+        return;
+    }
+
+    lvl = (INT)p->rschlvl;
+    prfmsg(RSCHHD);
+    for (i = 0; i <= rsch_max(); i++) {
+        CHAR mark = (i == lvl) ? '>' : ' ';
+        prf("  \x1b[1;33m%c\x1b[0;37m tier %d  \x1b[1;37m%-16s\x1b[0;37m "
+            "gather \x1b[1;32m+%d%%\x1b[0;37m   travel \x1b[1;33m-%d AP\x1b[0;37m\r\n",
+            mark, i, rsch_name(i), rsch_gather_pct(i), rsch_travel_disc(i));
+    }
+    if (rsch_cost(lvl, cost))
+        prfmsg(RSCHFT, cost[RES_WOOD], cost[RES_STONE], cost[RES_METAL]);
+    else
+        prfmsg(RSCHMAX);
+}
+
+/* ---------------------------------------------------------------------- *
+ * do_advance                                                             *
+ *                                                                        *
+ * Attempt to advance one research tier (the "K r" command). Reports the   *
+ * outcome and saves the player on success.                                *
+ * ---------------------------------------------------------------------- */
+VOID EXPORT
+do_advance(struct fracplyr *p)
+{
+    switch (rsch_advance(p)) {
+    case RADV_OK:
+        pl_write(p);
+        prfmsg(RSCHUP, rsch_name((INT)p->rschlvl),
+               rsch_gather_pct((INT)p->rschlvl));
+        break;
+    case RADV_MAX:
+        prfmsg(RSCHMAX);
+        break;
+    case RADV_POOR:
+        prfmsg(RSCHNOR);
+        break;
+    default:
+        prf("\x1b[2J\r\n  \x1b[1;31mThe research bench is closed here.\x1b[0;37m\r\n");
+        break;
+    }
+}
+
+/* ---------------------------------------------------------------------- *
  * module_main                                                            *
  *                                                                        *
  * Per-user menu state machine. The player's record is loaded fresh each  *
@@ -705,6 +776,12 @@ module_main(VOID)
                 do_trade(&me);               /* "M s/b n q" trades          */
             else
                 do_market(&me);              /* "M" shows the trading post  */
+        }
+        else if (sameas(margv[0], "k")) {
+            if (margc > 1)
+                do_advance(&me);             /* "K r" researches next tier  */
+            else
+                do_research(&me);            /* "K" shows the research track */
         }
         else if (sameas(margv[0], "t")) {
             prfmsg(STATUS, me.userid, me.fame, me.actpts,

@@ -54,6 +54,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   world.
 
 ### Added
+- Research track (`RESEARCH.C`/`.H`): a five-tier knowledge ladder (Untrained →
+  Sharpened Tools → Field Survey → Logistics → Master Craft) that permanently
+  improves how a player plays. Each tier raises gather yield (up to +100%) and, from
+  the Logistics tier, shaves an Action Point off travel. **K** shows the research
+  bench (the whole ladder with your tier marked and the next tier's cost); **K R**
+  advances one tier for a scaling resource cost (Wood and Stone, Metal from tier 2).
+  The tier is stored in a spare byte of the player record, so there is no new data
+  file and existing players start untrained. Sysop option `RSCHOPT` (on/off). ADR
+  0012 records the model.
 - Trading post (`MARKET.C`/`.H`): a server-wide exchange for turning resources into
   Fame and back. **M** shows the post — a sell and buy price per resource (each
   weighted by scarcity: Metal ×3, Food ×2, the rest ×1) and how much you hold;

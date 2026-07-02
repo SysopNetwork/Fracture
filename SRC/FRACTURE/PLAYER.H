@@ -31,8 +31,8 @@ struct fracplyr {                /* one persistent player record             */
     LONG   res[RES_COUNT];     /*   gathered resources, indexed by RES_*    */
     UCHAR  campx;              /*   camp home tile column                   */
     UCHAR  campy;              /*   camp home tile row                      */
-    UCHAR  pad1;               /*   reserved (keeps the record even)        */
-    UCHAR  pad2;               /*   reserved                                */
+    UCHAR  rschlvl;            /*   research tier (0..RSCH_MAXLVL)          */
+    UCHAR  pad2;               /*   reserved (keeps the record even)        */
 };
 
 VOID  pl_open(VOID);            /* open the player file, creating it if new  */

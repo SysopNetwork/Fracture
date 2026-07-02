@@ -112,6 +112,7 @@
     <ClInclude Include="WEATHER.H" />
     <ClInclude Include="WORKER.H" />
     <ClInclude Include="MARKET.H" />
+    <ClInclude Include="RESEARCH.H" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FRACTURE.C" />
@@ -123,6 +124,7 @@
     <ClCompile Include="WEATHER.C" />
     <ClCompile Include="WORKER.C" />
     <ClCompile Include="MARKET.C" />
+    <ClCompile Include="RESEARCH.C" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="FRACTURE.rc" />
