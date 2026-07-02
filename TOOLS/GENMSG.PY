@@ -13,7 +13,7 @@ CLR = ESC + '[2J'
 LS='░'; MS='▒'; DS='▓'; FB='█'
 LHB='▌'; RHB='▐'
 
-BW = 52                       # banner / rule width (before the 2-space indent)
+BW = 74                       # banner / rule width (before the 2-space indent)
 IND = '  '
 
 def bar():
@@ -60,20 +60,21 @@ _menu += IND + tab('X', '       Exit to the BBS') + '\r\n'
 _menu += '\r\n' + IND + WHT + 'Choose: ' + RST
 MAINMEN = T('MAINMEN', _menu, 'Main menu')
 
-_short  = IND + tab('N S E W','Travel') + '  ' + tab('R','Search') + '  ' + tab('L','Look') + '  ' + tab('C','Camp') + '\r\n'
-_short += IND + tab('P','Crew') + '  ' + tab('H','News') + '  ' + tab('T','Status') + '  ' + tab('X','Exit') + '  ' + tab('?','Menu') + '\r\n'
+_gap = '    '                 # wider gaps spread the tab bar across the screen
+_short  = IND + tab('N S E W','Travel') + _gap + tab('R','Search') + _gap + tab('L','Look') + _gap + tab('C','Camp') + '\r\n'
+_short += IND + tab('P','Crew') + _gap + tab('H','News') + _gap + tab('T','Status') + _gap + tab('X','Exit') + _gap + tab('?','Menu') + '\r\n'
 _short += IND + WHT + 'Choose: ' + RST
 SHORTM = T('SHORTM', _short, 'Short menu')
 
 # STATUS - specifiers must stay: %s %ld %d %ld %ld %d %d %s %ld %ld %ld %ld %ld %ld
-_st  = CLR + '\r\n' + sect('EXPLORER STATUS') + '\r\n' + rule() + '\r\n'
+_st  = CLR + '\r\n' + sect('EXPLORER STATUS') + '\r\n' + rule() + '\r\n' + '\r\n'
 _st += IND + GRY + ' Explorer   : ' + WHT + '%s' + RST + '\r\n'
 _st += IND + GRY + ' Fame       : ' + YEL + '%ld' + RST + '\r\n'
 _st += IND + GRY + ' Action Pts : ' + GRN + '%d' + GRY + ' remaining today' + RST + '\r\n'
 _st += IND + GRY + ' Explored   : ' + WHT + '%ld' + GRY + '     Discovered : ' + WHT + '%ld' + RST + '\r\n'
 _st += IND + GRY + ' Location   : ' + WHT + '(%d, %d)' + RST + '\r\n'
 _st += IND + GRY + ' Camp       : ' + WHT + '%s' + GRY + '  (storage %ld each)' + RST + '\r\n'
-_st += rule() + '\r\n'
+_st += '\r\n' + rule() + '\r\n'
 _st += IND + WHT + ' RESOURCES  ' + GRY + 'Wood ' + WHT + '%ld' + GRY + '  Stone ' + WHT + '%ld' + GRY + '  Metal ' + WHT + '%ld' + GRY + '  Food ' + WHT + '%ld' + GRY + '  Water ' + WHT + '%ld' + RST + '\r\n'
 _st += rule() + '\r\n' + RST
 STATUS = T('STATUS', _st, 'Explorer status')
@@ -124,11 +125,11 @@ GATHER = T('GATHER',
     'Resources gathered')
 
 # CAMPVW - specifiers: %s %d %d %ld
-_cv  = CLR + '\r\n' + sect('YOUR CAMP') + '\r\n' + rule() + '\r\n'
+_cv  = CLR + '\r\n' + sect('YOUR CAMP') + '\r\n' + rule() + '\r\n' + '\r\n'
 _cv += IND + GRY + ' Type     : ' + WHT + '%s' + RST + '\r\n'
 _cv += IND + GRY + ' Location : ' + WHT + '(%d, %d)' + RST + '\r\n'
 _cv += IND + GRY + ' Storage  : ' + WHT + '%ld' + GRY + ' of each resource' + RST + '\r\n'
-_cv += rule() + '\r\n' + RST
+_cv += '\r\n' + rule() + '\r\n' + RST
 CAMPVW = T('CAMPVW', _cv, 'Camp view')
 
 CAMPUPC = T('CAMPUPC',
