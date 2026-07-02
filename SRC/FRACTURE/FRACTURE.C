@@ -31,7 +31,10 @@
 
 /* ---- forward declarations -------------------------------------------- */
 GBOOL user_logon(VOID);              /* per-user logon supplemental routine  */
+GBOOL user_logoff(VOID);             /* per-user logoff / hangup routine     */
 GBOOL module_main(VOID);             /* main input / menu routine            */
+VOID  frac_nostop(VOID);             /* force nonstop output while in-module  */
+VOID  frac_restore(VOID);            /* restore the user's screen-pause pref  */
 VOID  user_deleted(CHAR *userid);    /* delete-account routine               */
 VOID  do_move(struct fracplyr *p, INT dx, INT dy);
 VOID  do_search(struct fracplyr *p); /* search the current tile              */
@@ -54,8 +57,8 @@ struct module FRACTURE = {
      module_main,                    /* input routine when module selected   */
      NULL,                           /* status-input routine                 */
      NULL,                           /* "injoth" routine                     */
-     NULL,                           /* user logoff supplemental routine     */
-     NULL,                           /* hangup (lost carrier) routine        */
+     user_logoff,                    /* user logoff supplemental routine     */
+     user_logoff,                    /* hangup (lost carrier) routine        */
      world_midnight,                 /* midnight cleanup: daily world tick   */
      user_deleted,                   /* delete-account routine               */
      system_shutdown                 /* finish-up (system shutdown) routine  */
@@ -73,6 +76,14 @@ INT      season_len;                 /* sysop option: days per season        */
 GBOOL    workers_on;                 /* sysop option: workers & production?  */
 INT      wrk_prod;                   /* sysop option: units per worker/day   */
 INT      wrk_food;                   /* sysop option: Food per worker/day    */
+
+/* Fracture paints its own full-screen pages, so while a user is in the game *
+ * we suppress the host's output more-prompt ("(N)onstop,(Q)uit,(C)ontinue?")*
+ * by forcing their page-break length to 0 (nonstop). The pause counter      *
+ * carries across screen clears, so without this it trips mid-redraw. The     *
+ * user's real setting is saved per channel and restored on exit / logoff.    */
+static CHAR sav_scnbrk[MAXNTERM];    /* saved usaptr->scnbrk, per channel     */
+static CHAR brk_forced[MAXNTERM];    /* 1 while we hold this user at nonstop   */
 
 /* ---------------------------------------------------------------------- *
  * init__fracture                                                         *
@@ -120,6 +131,47 @@ user_logon(VOID)
         outprf(usrnum);
         rstmbk();
     }
+    return 0;
+}
+
+/* ---------------------------------------------------------------------- *
+ * frac_nostop / frac_restore                                             *
+ *                                                                        *
+ * Suppress the host's automatic output more-prompt while a user is in    *
+ * the game. frac_nostop() saves the user's page-break length once, then  *
+ * forces it to 0 (nonstop) on every input tick. frac_restore() puts the  *
+ * saved value back when the user leaves (X, logoff, or hangup) so their  *
+ * screen-pause preference is untouched everywhere else on the BBS.       *
+ * ---------------------------------------------------------------------- */
+VOID EXPORT
+frac_nostop(VOID)
+{
+    if (!brk_forced[usrnum]) {
+        sav_scnbrk[usrnum] = usaptr->scnbrk;
+        brk_forced[usrnum] = 1;
+    }
+    usaptr->scnbrk = 0;                   /* 0 = nonstop (no page breaks)      */
+}
+
+VOID EXPORT
+frac_restore(VOID)
+{
+    if (brk_forced[usrnum]) {
+        usaptr->scnbrk = sav_scnbrk[usrnum];
+        brk_forced[usrnum] = 0;
+    }
+}
+
+/* ---------------------------------------------------------------------- *
+ * user_logoff                                                            *
+ *                                                                        *
+ * Runs on logoff and on hangup. Its only job is to restore the screen-   *
+ * pause preference if the user dropped out without pressing X.           *
+ * ---------------------------------------------------------------------- */
+GBOOL EXPORT
+user_logoff(VOID)
+{
+    frac_restore();
     return 0;
 }
 
@@ -437,6 +489,7 @@ module_main(VOID)
     GBOOL isnew;
 
     setmbk(fracmb);
+    frac_nostop();                   /* keep our full-screen pages from paging */
     isnew = pl_ensure(usaptr->userid, &me, daily_ap);
 
     if (!me.started) {
@@ -493,6 +546,7 @@ module_main(VOID)
             prfmsg(EXITMSG, usaptr->userid);
             outprf(usrnum);
             rstmbk();
+            frac_restore();          /* hand the user's screen-pause back      */
             return 0;
         }
         else if (sameas(margv[0], "\0") || sameas(margv[0], "")) {
