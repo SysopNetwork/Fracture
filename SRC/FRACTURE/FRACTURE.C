@@ -30,6 +30,7 @@
 #include "WORKER.H"
 #include "MARKET.H"
 #include "RESEARCH.H"
+#include "RAID.H"
 
 /* ---- forward declarations -------------------------------------------- */
 GBOOL user_logon(VOID);              /* per-user logon supplemental routine  */
@@ -50,6 +51,8 @@ VOID  do_market(struct fracplyr *p); /* show the trading post prices          */
 VOID  do_trade(struct fracplyr *p);  /* sell/buy at the trading post          */
 VOID  do_research(struct fracplyr *p);/* show the research track              */
 VOID  do_advance(struct fracplyr *p); /* advance to the next research tier    */
+VOID  do_raidlist(struct fracplyr *p);/* list raidable rivals                 */
+VOID  do_raid(struct fracplyr *p);    /* raid a rival's camp                  */
 VOID  show_weather(VOID);            /* print today's weather/season line    */
 VOID  world_midnight(VOID);          /* midnight cleanup: evolve the world   */
 VOID  system_shutdown(VOID);         /* finish-up (system shutdown) routine  */
@@ -86,6 +89,9 @@ GBOOL    market_on;                  /* sysop option: trading post?          */
 INT      mkt_sell;                   /* sysop option: Fame per unit sold     */
 INT      mkt_buy;                    /* sysop option: Fame per unit bought   */
 GBOOL    research_on;                /* sysop option: research track?        */
+GBOOL    raid_on;                    /* sysop option: PvP raiding?           */
+INT      raid_ap;                    /* sysop option: Action Points per raid */
+INT      raid_loot;                  /* sysop option: loot percentage        */
 
 /* Fracture paints its own full-screen pages, so while a user is in the game *
  * we suppress the host's output more-prompt ("(N)onstop,(Q)uit,(C)ontinue?")*
@@ -121,6 +127,9 @@ init__fracture(VOID)
     mkt_sell     = numopt(MKTSELL, 0, 100);
     mkt_buy      = numopt(MKTBUY, 0, 100);
     research_on  = ynopt(RSCHOPT);
+    raid_on      = ynopt(RADOPT);
+    raid_ap      = numopt(RADCOST, 0, 200);
+    raid_loot    = numopt(RADLOOT, 0, 100);
 
     pl_open();                       /* persistent players                   */
     wld_open(world_sz);              /* the map (generated on first run)     */
@@ -129,6 +138,7 @@ init__fracture(VOID)
     wrk_open(workers_on, wrk_prod, wrk_food); /* the crew / production system */
     market_open(market_on, mkt_sell, mkt_buy); /* the trading post exchange   */
     rsch_open(research_on);          /* the research knowledge track          */
+    raid_open(raid_on, raid_ap, raid_loot); /* player-versus-player raiding    */
 
     /* summary <= 32 chars, detail <= 63 - both show on the audit trail     */
     shocst("Fracture's here. Act impressed.",
@@ -655,6 +665,71 @@ do_advance(struct fracplyr *p)
 }
 
 /* ---------------------------------------------------------------------- *
+ * do_raidlist                                                            *
+ *                                                                        *
+ * List the rivals a player may raid - everyone else whose camp has grown  *
+ * past a Tent - with their camp tier and Fame, then how to mount a raid.   *
+ * ---------------------------------------------------------------------- */
+VOID EXPORT
+do_raidlist(struct fracplyr *p)
+{
+    INT n;
+
+    if (!raid_enabled()) {
+        prf("\x1b[2J\r\n  \x1b[1;31mRaiding is disabled here.\x1b[0;37m\r\n");
+        return;
+    }
+    prfmsg(RAIDHD);
+    n = pl_raidlist(p->userid, RAID_MINCAMP);
+    if (n == 0)
+        prfmsg(RAIDEMP);
+    prfmsg(RAIDFT, raid_apcost());
+}
+
+/* ---------------------------------------------------------------------- *
+ * do_raid                                                                *
+ *                                                                        *
+ * Raid the rival named by the second word of "A name". Resolves the       *
+ * clash in RAID.C, reports the outcome, and saves the raider when a raid   *
+ * was actually mounted (win or repelled - the Action Points were spent).   *
+ * ---------------------------------------------------------------------- */
+VOID EXPORT
+do_raid(struct fracplyr *p)
+{
+    struct raidout out;
+
+    raid_do(p, margv[1], &out);
+    switch (out.outcome) {
+    case RD_WIN:
+        pl_write(p);
+        prfmsg(RAIDWIN, out.target, out.loot);
+        break;
+    case RD_REPEL:
+        pl_write(p);
+        prfmsg(RAIDREP, out.target);
+        break;
+    case RD_NOAP:
+        prfmsg(RAIDNOAP, raid_apcost());
+        break;
+    case RD_PROT:
+        prfmsg(RAIDPROT, out.target);
+        break;
+    case RD_WEAK:
+        prfmsg(RAIDWEAK);
+        break;
+    case RD_SELF:
+        prfmsg(RAIDSELF);
+        break;
+    case RD_OFF:
+        prf("\x1b[2J\r\n  \x1b[1;31mRaiding is disabled here.\x1b[0;37m\r\n");
+        break;
+    default:                                 /* RD_NOTGT                    */
+        prfmsg(RAIDBAD);
+        break;
+    }
+}
+
+/* ---------------------------------------------------------------------- *
  * module_main                                                            *
  *                                                                        *
  * Per-user menu state machine. The player's record is loaded fresh each  *
@@ -716,6 +791,11 @@ module_main(VOID)
                 prfmsg(PRODSUM, made);
             if (hungry)
                 prfmsg(PRODHUN);
+        }
+        if (me.raidhit > 0) {                /* raided while away?          */
+            prfmsg(RAIDED, (INT)me.raidhit);
+            me.raidhit = 0;
+            pl_write(&me);
         }
         show_weather();                      /* then today's forecast       */
         prfmsg(usrptr->substt = MAINMEN);
@@ -782,6 +862,12 @@ module_main(VOID)
                 do_advance(&me);             /* "K r" researches next tier  */
             else
                 do_research(&me);            /* "K" shows the research track */
+        }
+        else if (sameas(margv[0], "a")) {
+            if (margc > 1)
+                do_raid(&me);                /* "A name" raids a rival      */
+            else
+                do_raidlist(&me);            /* "A" lists raidable rivals   */
         }
         else if (sameas(margv[0], "t")) {
             prfmsg(STATUS, me.userid, me.fame, me.actpts,

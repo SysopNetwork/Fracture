@@ -113,6 +113,7 @@
     <ClInclude Include="WORKER.H" />
     <ClInclude Include="MARKET.H" />
     <ClInclude Include="RESEARCH.H" />
+    <ClInclude Include="RAID.H" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FRACTURE.C" />
@@ -125,6 +126,7 @@
     <ClCompile Include="WORKER.C" />
     <ClCompile Include="MARKET.C" />
     <ClCompile Include="RESEARCH.C" />
+    <ClCompile Include="RAID.C" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="FRACTURE.rc" />

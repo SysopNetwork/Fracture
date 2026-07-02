@@ -54,6 +54,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   world.
 
 ### Added
+- Player raiding (`RAID.C`/`.H`): the first player-versus-player interaction.
+  **A** lists raidable rivals (players who have built past a Tent, with their camp
+  tier and Fame); **A name** raids one. The clash rolls each side's camp tier plus
+  research plus a die, the defender favored on home ground; win and you carry off a
+  sysop-set share of the target's resources (capped by your storage) plus Fame, lose
+  and the Action Points you spent are the cost. Both raider and target must have a
+  Cabin or better, so newcomers are safe and can neither raid nor be raided. A raided
+  player sees a "RAIDED!" notice on their next login. No new data file (the raid
+  counter reuses a spare record byte). Sysop options: `RADOPT` (on/off), `RADCOST`
+  (Action Points per raid, default 5), `RADLOOT` (percent looted on a win, default
+  25). ADR 0013 records the model.
 - Research track (`RESEARCH.C`/`.H`): a five-tier knowledge ladder (Untrained →
   Sharpened Tools → Field Survey → Logistics → Master Craft) that permanently
   improves how a player plays. Each tier raises gather yield (up to +100%) and, from

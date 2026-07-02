@@ -126,6 +126,45 @@ pl_ensure(const CHAR *userid, struct fracplyr *p, INT dailyap)
 }
 
 /* ---------------------------------------------------------------------- *
+ * pl_load                                                                *
+ *                                                                        *
+ * Public read-only fetch by user-id (no create, no AP refill), for       *
+ * reading and modifying another player such as a raid target.            *
+ * ---------------------------------------------------------------------- */
+GBOOL EXPORT
+pl_load(const CHAR *userid, struct fracplyr *p)
+{
+    return pl_read(userid, p);
+}
+
+/* ---------------------------------------------------------------------- *
+ * pl_raidlist                                                            *
+ *                                                                        *
+ * Walk every player record and print the ones a raider may target: not   *
+ * the caller, and with a camp of at least `mincamp`. Returns the count.   *
+ * ---------------------------------------------------------------------- */
+INT EXPORT
+pl_raidlist(const CHAR *selfid, INT mincamp)
+{
+    struct fracplyr p;
+    INT shown = 0;
+
+    dfaSetBlk(plyrdat);
+    if (dfaStepLO(&p)) {
+        do {
+            if ((INT)p.camplvl >= mincamp && !sameas(p.userid, (CHAR *)selfid)) {
+                prf("  \x1b[1;31m*\x1b[0;37m \x1b[1;37m%-20s\x1b[0;37m "
+                    "camp \x1b[1;37m%d\x1b[0;37m   Fame \x1b[1;33m%ld\x1b[0;37m\r\n",
+                    p.userid, (INT)p.camplvl, p.fame);
+                shown++;
+            }
+        } while (dfaStepNX(&p));
+    }
+    dfaRstBlk();
+    return shown;
+}
+
+/* ---------------------------------------------------------------------- *
  * pl_delete                                                              *
  *                                                                        *
  * Removes a player's record (called when the BBS account is deleted).    *

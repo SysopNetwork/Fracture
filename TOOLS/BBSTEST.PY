@@ -279,6 +279,7 @@ def main():
                            ("R", "search"), ("C", "camp"), ("P", "crew"),
                            ("M", "market"), ("M S 5 1", "sell"),
                            ("K", "research"), ("K R", "research-adv"),
+                           ("A", "raid-list"), ("A Nobody", "raid-attack"),
                            ("H", "news"), ("T", "status-2")]:
             screens[label] = run_cmd(ses, cmd, label)
             fracture_log += screens[label]
@@ -307,6 +308,12 @@ def main():
         check("research advance responds",
               any(t in screens.get("research-adv", "")
                   for t in ("RESEARCHED", "do not have", "complete", "closed")))
+        raid = screens.get("raid-list", "")
+        check("raid screen", "RAID A RIVAL" in raid and "Action Points" in raid)
+        check("raid attack responds",
+              any(t in screens.get("raid-attack", "")
+                  for t in ("overrun", "driven off", "Cabin", "Tent",
+                            "Action Points", "No such", "own camp", "disabled")))
         check("NO (N)onstop pause inside game", not PAUSE_SEEN,
               "more-prompt fired on: %s (nonstop fix not deployed?)"
               % ", ".join(PAUSE_SEEN) if PAUSE_SEEN else "")

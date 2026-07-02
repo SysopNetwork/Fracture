@@ -73,5 +73,19 @@
 #define RSCHUP     82
 #define RSCHMAX    83
 #define RSCHNOR    84
+#define RADOPT     86
+#define RADCOST    87
+#define RADLOOT    88
+#define RAIDHD     90
+#define RAIDFT     91
+#define RAIDEMP    92
+#define RAIDWIN    93
+#define RAIDREP    94
+#define RAIDNOAP   95
+#define RAIDPROT   96
+#define RAIDWEAK   97
+#define RAIDSELF   98
+#define RAIDBAD    99
+#define RAIDED    100
 
 #define QUIPN      45      /* last arrival quip (lngrnd upper bound) */

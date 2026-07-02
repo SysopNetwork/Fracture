@@ -56,6 +56,7 @@ _menu += IND + tab('C', '       Camp - view and build it up') + '\r\n'
 _menu += IND + tab('P', '       Crew - workers & production') + '\r\n'
 _menu += IND + tab('M', '       Market - trade resources for Fame') + '\r\n'
 _menu += IND + tab('K', '       Research - permanent skill upgrades') + '\r\n'
+_menu += IND + tab('A', '       Attack - raid a rival camp') + '\r\n'
 _menu += IND + tab('H', '       News & the world chronicle') + '\r\n'
 _menu += IND + tab('T', '       Explorer status') + '\r\n'
 _menu += IND + tab('X', '       Exit to the BBS') + '\r\n'
@@ -64,8 +65,8 @@ MAINMEN = T('MAINMEN', _menu, 'Main menu')
 
 _gap = '    '                 # wider gaps spread the tab bar across the screen
 _short  = IND + tab('N S E W','Travel') + _gap + tab('R','Search') + _gap + tab('L','Look') + _gap + tab('C','Camp') + '\r\n'
-_short += IND + tab('P','Crew') + _gap + tab('M','Market') + _gap + tab('K','Research') + _gap + tab('H','News') + '\r\n'
-_short += IND + tab('T','Status') + _gap + tab('X','Exit') + _gap + tab('?','Menu') + '\r\n'
+_short += IND + tab('P','Crew') + _gap + tab('M','Market') + _gap + tab('K','Research') + _gap + tab('A','Raid') + '\r\n'
+_short += IND + tab('H','News') + _gap + tab('T','Status') + _gap + tab('X','Exit') + _gap + tab('?','Menu') + '\r\n'
 _short += IND + WHT + 'Choose: ' + RST
 SHORTM = T('SHORTM', _short, 'Short menu')
 
@@ -278,6 +279,58 @@ RSCHNOR = T('RSCHNOR',
     IND + RED+RHB + RST + ' ' + RED + 'You do not have the resources for the next tier yet.' + RST + '\r\n',
     'Research - cannot afford')
 
+# --- raiding ---
+RAIDHD = T('RAIDHD',
+    CLR + '\r\n' + sect('RAID A RIVAL') + '\r\n' + rule() + '\r\n' + RST,
+    'Raid screen header')
+
+# RAIDFT - specifier: %d (Action Point cost)
+RAIDFT = T('RAIDFT',
+    rule() + '\r\n' + IND + GRY + 'Raid a rival with ' + WHT+RHB+' A name '+LHB + GRY + ' - it costs ' + YEL + '%d' + GRY + ' Action Points.' + RST + '\r\n'
+    + IND + GRY + 'Only camps built past a Tent can raid or be raided.' + RST + '\r\n' + RST,
+    'Raid footer')
+
+RAIDEMP = T('RAIDEMP',
+    IND + YEL + 'No rivals have built a camp worth raiding yet.' + RST + '\r\n',
+    'Raid - no targets')
+
+# RAIDWIN - specifiers: %s target, %ld loot
+RAIDWIN = T('RAIDWIN',
+    IND + MAG+DS+MS+LS + ' RAID! ' + RST + GRY + 'You overrun ' + WHT + '%s' + GRY + ' and haul off ' + GRN + '%ld' + GRY + ' resources.  ' + YEL + '(+5 Fame)' + RST + '\r\n',
+    'Raid succeeded')
+
+# RAIDREP - specifier: %s target
+RAIDREP = T('RAIDREP',
+    IND + RED+DS+MS+LS + RST + ' ' + GRY + 'The camp of ' + WHT + '%s' + GRY + ' holds - your raid is driven off.' + RST + '\r\n',
+    'Raid repelled')
+
+# RAIDNOAP - specifier: %d Action Points needed
+RAIDNOAP = T('RAIDNOAP',
+    IND + RED+RHB + RST + ' ' + RED + 'A raid needs ' + WHT + '%d' + RED + ' Action Points, and you are short.' + RST + '\r\n',
+    'Raid - not enough AP')
+
+# RAIDPROT - specifier: %s target
+RAIDPROT = T('RAIDPROT',
+    IND + RED+RHB + RST + ' ' + RED + 'That camp is only a Tent - too small to raid. Pick someone built up.' + RST + '\r\n',
+    'Raid - target protected')
+
+RAIDWEAK = T('RAIDWEAK',
+    IND + RED+RHB + RST + ' ' + RED + 'Build your camp to a Cabin before you can raid.' + RST + '\r\n',
+    'Raid - raider too weak')
+
+RAIDSELF = T('RAIDSELF',
+    IND + RED+RHB + RST + ' ' + RED + 'You cannot raid your own camp.' + RST + '\r\n',
+    'Raid - self')
+
+RAIDBAD = T('RAIDBAD',
+    IND + RED+RHB + RST + ' ' + RED + 'No such rival. Check the name and try ' + WHT + 'A name' + RED + ' again.' + RST + '\r\n',
+    'Raid - no such target')
+
+# RAIDED - specifier: %d times raided
+RAIDED = T('RAIDED',
+    IND + RED+DS+MS+LS + ' RAIDED! ' + RST + GRY + 'While you were away your camp was raided ' + WHT + '%d' + GRY + ' time(s).' + RST + '\r\n' + RST,
+    'You were raided')
+
 # --- arrival quips (restyled, keep [2J and one per entry) ---
 QUIP_TEXT = [
     '"Finally, I\'m here."',
@@ -438,6 +491,33 @@ out.append('')
 out.append('LEVEL6 {Fracture: research text}')
 out.append('')
 for m in [RSCHHD, RSCHFT, RSCHUP, RSCHMAX, RSCHNOR]:
+    out.append(m.rstrip('\r\n'))
+    out.append('')
+
+# --- config: raiding ---
+out.append('LEVEL4 {Fracture: raiding}')
+out.append('')
+out.append(' Turn player-versus-player raiding on or off. When on, a player with')
+out.append(' a camp built past a Tent can raid a rival to carry off a share of')
+out.append(' their resources; newcomers (still in a Tent) cannot raid or be')
+out.append(' raided. Set to NO for a purely peaceful server.')
+out.append('')
+out.append('RADOPT {Enable player raiding? YES} B')
+out.append('')
+out.append(' Action Points a raid costs the attacker, win or lose. A higher cost')
+out.append(' makes raiding a bigger commitment of the daily pool.')
+out.append('')
+out.append('RADCOST {Action Points per raid? 5} N 0 200')
+out.append('')
+out.append(' Percentage of each of the defender\'s resources a successful raid')
+out.append(' carries off (capped by the raider\'s own storage).')
+out.append('')
+out.append('RADLOOT {Percent of resources looted on a win? 25} N 0 100')
+out.append('')
+out.append('LEVEL6 {Fracture: raid text}')
+out.append('')
+for m in [RAIDHD, RAIDFT, RAIDEMP, RAIDWIN, RAIDREP, RAIDNOAP, RAIDPROT,
+          RAIDWEAK, RAIDSELF, RAIDBAD, RAIDED]:
     out.append(m.rstrip('\r\n'))
     out.append('')
 

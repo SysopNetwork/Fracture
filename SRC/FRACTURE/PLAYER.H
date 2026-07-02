@@ -32,7 +32,7 @@ struct fracplyr {                /* one persistent player record             */
     UCHAR  campx;              /*   camp home tile column                   */
     UCHAR  campy;              /*   camp home tile row                      */
     UCHAR  rschlvl;            /*   research tier (0..RSCH_MAXLVL)          */
-    UCHAR  pad2;               /*   reserved (keeps the record even)        */
+    UCHAR  raidhit;            /*   raids suffered since last login          */
 };
 
 VOID  pl_open(VOID);            /* open the player file, creating it if new  */
@@ -45,5 +45,14 @@ GBOOL pl_ensure(const CHAR *userid, struct fracplyr *p, INT dailyap);
 
 VOID  pl_write(struct fracplyr *p);   /* update existing or insert new       */
 VOID  pl_delete(const CHAR *userid);  /* remove a player's record            */
+
+/* Load an existing player by user-id, without creating or refilling Action    */
+/* Points. Returns TRUE if found. Used to read and modify another player, such  */
+/* as a raid target.                                                            */
+GBOOL pl_load(const CHAR *userid, struct fracplyr *p);
+
+/* Print a list of raidable rivals - players other than `selfid` whose camp     */
+/* tier is at least `mincamp` - one per line, and return how many were shown.   */
+INT   pl_raidlist(const CHAR *selfid, INT mincamp);
 
 #endif /* FRACTURE_PLAYER_H */
