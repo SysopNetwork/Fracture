@@ -1,0 +1,9 @@
+; Fracture BBS smoke-test configuration (template).
+; Copy this file to BBSTEST.LOCAL.INI and fill in the real values.
+; BBSTEST.LOCAL.INI is gitignored - do not commit the real host or account.
+
+[bbs]
+host     = 127.0.0.1
+port     = 23
+userid   = TESTUSER
+password = CHANGEME

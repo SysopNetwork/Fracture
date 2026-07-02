@@ -12,6 +12,7 @@ PROJECT_STATUS.MD
 /SCRATCH/
 /PRIVATE/
 /INTERNAL/
+/Screenshots/
 
 # --- Local tooling / editor assistants (never publish) ---
 CLAUDE.md
@@ -27,6 +28,11 @@ CLAUDE.md
 CONFIG.INI
 *.local
 secrets.*
+# Local test-harness config holds a BBS address + account - never publish.
+*.LOCAL.INI
+BBSTEST.LOCAL.INI
+# Smoke-test session captures (transient).
+BBSTEST.OUT.*
 
 # --- Visual Studio / MSBuild ---
 .vs/
