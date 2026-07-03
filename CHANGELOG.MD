@@ -5,6 +5,17 @@ All notable changes to Fracture are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+- The main menu and the compact command bar were rebuilt as aligned grids. The
+  full menu is now two columns (half its former height) and finally lists **U**
+  Upgrade; the compact bar is a four-column grid with every tab starting at a
+  fixed column, its rows themed — world, camp, progress/rivals, then help/exit —
+  instead of the old ragged 4/4/4/2 wrap that left Board and Upgrade dangling.
+  Message names, types, and order were preserved, so the numbering is unchanged
+  and no rebuild is required.
+
 ## [1.0.0] - 2026-07-03
 
 First release: the complete core game — a persistent tile world with daily

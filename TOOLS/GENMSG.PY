@@ -48,28 +48,41 @@ LOGON = T('LOGON',
     CYN+DS+MS+LS + RST + ' ' + WHT+'FRACTURE' + RST + ' ' + GRY+'- a living world, rebuilt every day.' + RST + '\r\n' + RST,
     'Logon greeting')
 
+# Menus are laid out as grids: every tab cell is padded to a fixed visible
+# width so the column starts line up on every row.
+def cell(keys, label, w):
+    vis = len(keys) + len(label) + 5          # "| keys | label" visible width
+    return tab(keys, ' ' + label) + ' ' * max(0, w - vis)
+
+def tabrow(cells, w):
+    return IND + ''.join(cell(k, l, w) for k, l in cells).rstrip() + '\r\n'
+
+# Full menu: two aligned columns, rows themed world -> camp -> rivals -> meta.
+_MENU_ROWS = [
+    [('N S E W', 'Travel the world (1 AP)'),  ('R', 'Search the ground (1 AP)')],
+    [('L', 'Look around (local map)'),        ('T', 'Explorer status')],
+    [('C', 'Camp - view and build it up'),    ('U', 'Upgrade your camp')],
+    [('P', 'Crew - workers & production'),    ('M', 'Market - trade for Fame')],
+    [('K', 'Research - skill upgrades'),      ('A', 'Attack - raid a rival camp')],
+    [('H', 'News & the world chronicle'),     ('F', 'Fame leaderboard')],
+    [('?', 'How to play - a quick guide'),    ('X', 'Exit to the BBS')],
+]
 _menu = banner_noclr('F R A C T U R E', 'a living world, rebuilt each day') + '\r\n'
-_menu += IND + tab('N S E W', ' Travel the world  (1 AP)') + '\r\n'
-_menu += IND + tab('R', '       Search the ground  (1 AP)') + '\r\n'
-_menu += IND + tab('L', '       Look around (local map)') + '\r\n'
-_menu += IND + tab('C', '       Camp - view and build it up') + '\r\n'
-_menu += IND + tab('P', '       Crew - workers & production') + '\r\n'
-_menu += IND + tab('M', '       Market - trade resources for Fame') + '\r\n'
-_menu += IND + tab('K', '       Research - permanent skill upgrades') + '\r\n'
-_menu += IND + tab('A', '       Attack - raid a rival camp') + '\r\n'
-_menu += IND + tab('H', '       News & the world chronicle') + '\r\n'
-_menu += IND + tab('T', '       Explorer status') + '\r\n'
-_menu += IND + tab('F', '       Fame leaderboard') + '\r\n'
-_menu += IND + tab('?', '       How to play - a quick guide') + '\r\n'
-_menu += IND + tab('X', '       Exit to the BBS') + '\r\n'
+for _r in _MENU_ROWS:
+    _menu += tabrow(_r, 37)
 _menu += '\r\n' + IND + WHT + 'Choose: ' + RST
 MAINMEN = T('MAINMEN', _menu, 'Main menu')
 
-_gap = '    '                 # wider gaps spread the tab bar across the screen
-_short  = '\r\n' + IND + tab('N S E W','Travel') + _gap + tab('R','Search') + _gap + tab('L','Look') + _gap + tab('C','Camp') + '\r\n'
-_short += IND + tab('P','Crew') + _gap + tab('M','Market') + _gap + tab('K','Research') + _gap + tab('A','Raid') + '\r\n'
-_short += IND + tab('H','News') + _gap + tab('T','Status') + _gap + tab('X','Exit') + _gap + tab('?','Help') + '\r\n'
-_short += IND + tab('F','Board') + _gap + tab('U','Upgrade') + '\r\n'
+# Compact bar: the same commands in a four-column grid, same row themes.
+_BAR_ROWS = [
+    [('NSEW', 'Travel'), ('R', 'Search'),  ('L', 'Look'), ('T', 'Status')],
+    [('C', 'Camp'),      ('U', 'Upgrade'), ('P', 'Crew'), ('M', 'Market')],
+    [('K', 'Research'),  ('A', 'Raid'),    ('H', 'News'), ('F', 'Board')],
+    [('?', 'Help'),      ('X', 'Exit')],
+]
+_short = '\r\n'
+for _r in _BAR_ROWS:
+    _short += tabrow(_r, 17)
 _short += IND + WHT + 'Choose: ' + RST
 SHORTM = T('SHORTM', _short, 'Short menu')
 
