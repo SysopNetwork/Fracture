@@ -61,7 +61,7 @@ raid_do(struct fracplyr *atk, const CHAR *targetid, struct raidout *out)
     if (!raidon)                              { out->outcome = RD_OFF;   return; }
     if ((INT)atk->camplvl < RAID_MINCAMP)     { out->outcome = RD_WEAK;  return; }
     if (sameas((CHAR *)targetid, atk->userid)){ out->outcome = RD_SELF;  return; }
-    if (!pl_load(targetid, &def))             { out->outcome = RD_NOTGT; return; }
+    if (!pl_load_ci(targetid, &def))          { out->outcome = RD_NOTGT; return; }
 
     stzcpy(out->target, def.userid, UIDSIZ);
     if ((INT)def.camplvl < RAID_MINCAMP)      { out->outcome = RD_PROT;  return; }

@@ -59,24 +59,52 @@ _menu += IND + tab('K', '       Research - permanent skill upgrades') + '\r\n'
 _menu += IND + tab('A', '       Attack - raid a rival camp') + '\r\n'
 _menu += IND + tab('H', '       News & the world chronicle') + '\r\n'
 _menu += IND + tab('T', '       Explorer status') + '\r\n'
+_menu += IND + tab('?', '       How to play - a quick guide') + '\r\n'
 _menu += IND + tab('X', '       Exit to the BBS') + '\r\n'
 _menu += '\r\n' + IND + WHT + 'Choose: ' + RST
 MAINMEN = T('MAINMEN', _menu, 'Main menu')
 
 _gap = '    '                 # wider gaps spread the tab bar across the screen
-_short  = IND + tab('N S E W','Travel') + _gap + tab('R','Search') + _gap + tab('L','Look') + _gap + tab('C','Camp') + '\r\n'
+_short  = '\r\n' + IND + tab('N S E W','Travel') + _gap + tab('R','Search') + _gap + tab('L','Look') + _gap + tab('C','Camp') + '\r\n'
 _short += IND + tab('P','Crew') + _gap + tab('M','Market') + _gap + tab('K','Research') + _gap + tab('A','Raid') + '\r\n'
-_short += IND + tab('H','News') + _gap + tab('T','Status') + _gap + tab('X','Exit') + _gap + tab('?','Menu') + '\r\n'
+_short += IND + tab('H','News') + _gap + tab('T','Status') + _gap + tab('X','Exit') + _gap + tab('?','Help') + '\r\n'
 _short += IND + WHT + 'Choose: ' + RST
 SHORTM = T('SHORTM', _short, 'Short menu')
 
-# STATUS - specifiers must stay: %s %ld %d %ld %ld %d %d %s %ld %ld %ld %ld %ld %ld
+# HELP - how to play. Costs no AP; reached with "?". Emitted LAST in the MSG
+# (see the out.append at the foot of this file) so existing message numbers
+# do not shift.
+def hkey(keys, body):
+    return IND + YEL + keys.ljust(10) + RST + GRY + body + RST + '\r\n'
+_help  = banner('HOW TO PLAY', 'a living world, rebuilt each day')
+_help += '\r\n'
+_help += IND + GRY + 'Explore a ' + WHT + '%d x %d' + GRY + ' world a little each day. Every action costs ' + WHT + 'Action' + RST + '\r\n'
+_help += IND + WHT + 'Points' + GRY + ' (AP); when they run out, come back tomorrow. Overnight your AP' + RST + '\r\n'
+_help += IND + GRY + 'refill and the unexplored wilds regrow, so the world is never used up.' + RST + '\r\n'
+_help += '\r\n'
+_help += sect('WHAT YOU DO') + '\r\n'
+_help += hkey('N S E W R', 'Explore: travel and search to chart new tiles and win Fame.')
+_help += hkey('W R 3', 'Go far: travel a direction several tiles, R to search each.')
+_help += hkey('C', 'Camp: spend resources to raise its tier and storage.')
+_help += hkey('P', 'Crew: house workers who gather resources for you each day.')
+_help += hkey('M', 'Market: sell finds for Fame, or buy what you are short on.')
+_help += hkey('K', 'Research: permanent upgrades - better yields, cheaper travel.')
+_help += hkey('A', 'Raid: attack a rival camp to carry off some of their goods.')
+_help += '\r\n'
+_help += sect('GETTING BY') + '\r\n'
+_help += IND + GRY + 'Fame is your score - chart ground, trade well, and out-build rivals to' + RST + '\r\n'
+_help += IND + GRY + 'climb the board. ' + WHT + 'L' + GRY + 'ook, ' + WHT + 'T' + GRY + ' status and this ' + WHT + '?' + GRY + ' help cost no AP - use them freely.' + RST + '\r\n'
+_help += '\r\n'
+_help += IND + DIM + 'Press ' + WHT + 'ENTER' + DIM + ' to return.' + RST
+HELP = T('HELP', _help, 'How to play')
+
+# STATUS - specifiers must stay: %s %ld %d %ld %ld %d %d %d %d %s %ld %ld %ld %ld %ld %ld
 _st  = CLR + '\r\n' + sect('EXPLORER STATUS') + '\r\n' + rule() + '\r\n' + '\r\n'
 _st += IND + GRY + ' Explorer   : ' + WHT + '%s' + RST + '\r\n'
 _st += IND + GRY + ' Fame       : ' + YEL + '%ld' + RST + '\r\n'
 _st += IND + GRY + ' Action Pts : ' + GRN + '%d' + GRY + ' remaining today' + RST + '\r\n'
 _st += IND + GRY + ' Explored   : ' + WHT + '%ld' + GRY + '     Discovered : ' + WHT + '%ld' + RST + '\r\n'
-_st += IND + GRY + ' Location   : ' + WHT + '(%d, %d)' + RST + '\r\n'
+_st += IND + GRY + ' Location   : ' + WHT + '(%d, %d)' + GRY + '   World ' + WHT + '%d x %d' + RST + '\r\n'
 _st += IND + GRY + ' Camp       : ' + WHT + '%s' + GRY + '  (storage %ld each)' + RST + '\r\n'
 _st += '\r\n' + rule() + '\r\n'
 _st += IND + WHT + ' RESOURCES  ' + GRY + 'Wood ' + WHT + '%ld' + GRY + '  Stone ' + WHT + '%ld' + GRY + '  Metal ' + WHT + '%ld' + GRY + '  Food ' + WHT + '%ld' + GRY + '  Water ' + WHT + '%ld' + RST + '\r\n'
@@ -530,6 +558,12 @@ out.append(' testing and casual servers that do not want a daily cap. Leave this
 out.append(' NO for normal play.')
 out.append('')
 out.append('APFREE {Refill Action Points on every entry? NO} B')
+out.append('')
+
+# --- help text (emitted last so message numbers of existing entries hold) ---
+out.append('LEVEL6 {Fracture: help text}')
+out.append('')
+out.append(HELP.rstrip('\r\n'))
 out.append('')
 
 text = CRLF.join(out) + CRLF

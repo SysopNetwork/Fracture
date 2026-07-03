@@ -40,7 +40,10 @@ VOID  frac_nostop(VOID);             /* force nonstop output while in-module  */
 VOID  frac_restore(VOID);            /* restore the user's screen-pause pref  */
 VOID  user_deleted(CHAR *userid);    /* delete-account routine               */
 VOID  do_move(struct fracplyr *p, INT dx, INT dy);
+VOID  do_go(struct fracplyr *p, INT dx, INT dy, const CHAR *dirname);
+                                     /* "<dir> [R] [count]" auto-travel      */
 VOID  do_search(struct fracplyr *p); /* search the current tile              */
+static LONG trade_qty(const CHAR *s);/* parse a digits-only count (defined below) */
 VOID  do_look(struct fracplyr *p);   /* show the local map and tile          */
 VOID  do_camp(struct fracplyr *p);   /* show the camp and its next upgrade   */
 VOID  do_upgrade(struct fracplyr *p);/* spend resources to upgrade the camp  */
@@ -227,7 +230,7 @@ do_look(struct fracplyr *p)
     name = (here.flags & TF_DISCOVERED) ? wld_name(here.terrain) : "unknown";
     prfmsg(LOOKHD, (INT)p->posx, (INT)p->posy, name);
 
-    prf("\n");
+    prf("\n\n");
     for (vy = (INT)p->posy - VIEWH; vy <= (INT)p->posy + VIEWH; vy++) {
         i = 0;
         for (vx = (INT)p->posx - VIEWW; vx <= (INT)p->posx + VIEWW; vx++) {
@@ -342,6 +345,147 @@ do_search(struct fracplyr *p)
     }
 
     pl_write(p);
+}
+
+/* ---------------------------------------------------------------------- *
+ * Auto-travel ("<dir> [R] [count]")                                      *
+ *                                                                        *
+ * step_move / step_search are no-redraw, accumulating cores behind the   *
+ * batch travel command. They mirror do_move / do_search but gather their *
+ * results into a travelsum instead of drawing or printing, so a run of    *
+ * many tiles yields one map redraw and one compact summary rather than a  *
+ * whole screen per step. Keep them in step with do_move / do_search.      *
+ * ---------------------------------------------------------------------- */
+struct travelsum {
+    INT  moved;               /* tiles actually travelled                  */
+    INT  charted;             /* new tiles charted along the way           */
+    LONG fame;                /* Fame gained from those charts             */
+    LONG res[RES_COUNT];      /* resources gathered, by RES_*              */
+    INT  apused;              /* Action Points spent                       */
+    INT  stop;                /* why we stopped: 0 done, 1 edge, 2 no AP   */
+};
+
+/* move one tile; returns 0 moved, 1 blocked by the edge, 2 not enough AP  */
+static INT
+step_move(struct fracplyr *p, INT dx, INT dy, struct travelsum *sum)
+{
+    INT nx, ny, cost;
+
+    cost = wx_travcost();                     /* storms and snow raise it   */
+    cost -= rsch_travel_disc((INT)p->rschlvl);
+    if (cost < 1)
+        cost = 1;
+    if (p->actpts < cost)
+        return 2;
+
+    nx = (INT)p->posx + dx;
+    ny = (INT)p->posy + dy;
+    if (nx < 0 || ny < 0 || nx >= wld_size() || ny >= wld_size())
+        return 1;
+
+    p->actpts   -= cost;
+    sum->apused += cost;
+    p->posx = (UCHAR)nx;
+    p->posy = (UCHAR)ny;
+    return 0;
+}
+
+/* search the current tile, accumulating into sum; 0 ok, 2 not enough AP    */
+static INT
+step_search(struct fracplyr *p, struct travelsum *sum)
+{
+    struct fractile t;
+    INT rtype, ramt;
+
+    if (p->actpts <= 0)
+        return 2;
+
+    p->actpts--;
+    sum->apused++;
+    p->explores++;
+
+    wld_get(p->posx, p->posy, &t);
+    if (!(t.flags & TF_DISCOVERED)) {
+        INT gain = (INT)lngrnd(8, 20);
+        t.flags |= TF_DISCOVERED;
+        wld_put(&t);
+        p->discoveries++;
+        p->fame   += gain;
+        sum->fame += gain;
+        sum->charted++;
+        hist_add(HE_DISCOVER, p->userid, t.terrain,
+                 (INT)p->posx, (INT)p->posy);
+    }
+
+    res_yield(t.terrain, &rtype, &ramt);
+    ramt = wx_yield(ramt);
+    ramt = (INT)rsch_gather((INT)p->rschlvl, ramt);
+    if (ramt > 0) {
+        LONG cap    = camp_storage(p->camplvl);
+        LONG before = p->res[rtype];
+        p->res[rtype] += ramt;
+        if (p->res[rtype] > cap)
+            p->res[rtype] = cap;              /* storage is the cap         */
+        if (p->res[rtype] > before)
+            sum->res[rtype] += (p->res[rtype] - before);
+    }
+    return 0;
+}
+
+/* ---------------------------------------------------------------------- *
+ * do_go                                                                  *
+ *                                                                        *
+ * The batch travel command "<dir> [R] [count]": walk up to `count` tiles  *
+ * in one direction, optionally searching each tile ("R"), stopping early  *
+ * at the world edge or when Action Points run out. The map is redrawn      *
+ * once at the end and a one-line summary reports what the trip yielded.    *
+ * A plain single step still goes through do_move; do_go is used only when  *
+ * the player typed extra words after the direction letter.                *
+ * ---------------------------------------------------------------------- */
+VOID EXPORT
+do_go(struct fracplyr *p, INT dx, INT dy, const CHAR *dirname)
+{
+    struct travelsum sum;
+    INT count = 1, dosearch = 0, i;
+
+    /* read the extra words: an "R" to search each tile, and a step count   */
+    for (i = 1; i < margc; i++) {
+        if (sameas(margv[i], "r"))
+            dosearch = 1;
+        else {
+            LONG n = trade_qty(margv[i]);
+            if (n > 0)
+                count = (n > wld_size()) ? wld_size() : (INT)n;
+        }
+    }
+
+    setmem(&sum, sizeof(sum), 0);
+
+    while (sum.moved < count) {
+        INT mv = step_move(p, dx, dy, &sum);
+        if (mv != 0) { sum.stop = mv; break; }
+        sum.moved++;
+        if (dosearch && step_search(p, &sum) == 2) { sum.stop = 2; break; }
+    }
+
+    pl_write(p);
+    do_look(p);                        /* one redraw of the recentered map   */
+
+    /* summary printed BELOW the map: do_look clears the screen first, so    *
+     * anything printed before it would be erased.                           */
+    prf("  \x1b[0;37mTravelled \x1b[1;37m%d\x1b[0;37m %s", sum.moved, dirname);
+    if (sum.charted)
+        prf(", charted \x1b[1;37m%d\x1b[0;37m new \x1b[1;33m(+%ld Fame)\x1b[0;37m",
+            sum.charted, sum.fame);
+    for (i = 0; i < RES_COUNT; i++) {
+        if (sum.res[i] > 0)
+            prf(", \x1b[1;32m%ld\x1b[0;37m %s", sum.res[i], res_name(i));
+    }
+    prf(".  \x1b[1;30m(%d AP)\x1b[0;37m\n", sum.apused);
+    if (sum.stop == 1)
+        prf("  \x1b[1;31mYou reach the edge of the known world.\x1b[0;37m\n");
+    else if (sum.stop == 2)
+        prf("  \x1b[1;31mYour Action Points run out.\x1b[0;37m\n");
 }
 
 /* ---------------------------------------------------------------------- *
@@ -824,21 +968,20 @@ module_main(VOID)
              * (printing SHORTM here too would double the menu)               */
         }
         else if (sameas(margv[0], "?")) {
-            prf("\x1b[2J");                  /* MAINMEN no longer self-clears */
-            prfmsg(MAINMEN);
+            prfmsg(HELP, wld_size(), wld_size());  /* how-to-play; self-clears */
             break;
         }
         else if (sameas(margv[0], "n")) {
-            do_move(&me, 0, -1);
+            if (margc > 1) do_go(&me, 0, -1, "north"); else do_move(&me, 0, -1);
         }
         else if (sameas(margv[0], "s")) {
-            do_move(&me, 0, 1);
+            if (margc > 1) do_go(&me, 0, 1, "south"); else do_move(&me, 0, 1);
         }
         else if (sameas(margv[0], "e")) {
-            do_move(&me, 1, 0);
+            if (margc > 1) do_go(&me, 1, 0, "east"); else do_move(&me, 1, 0);
         }
         else if (sameas(margv[0], "w")) {
-            do_move(&me, -1, 0);
+            if (margc > 1) do_go(&me, -1, 0, "west"); else do_move(&me, -1, 0);
         }
         else if (sameas(margv[0], "r")) {
             do_search(&me);
@@ -882,6 +1025,7 @@ module_main(VOID)
         else if (sameas(margv[0], "t")) {
             prfmsg(STATUS, me.userid, me.fame, me.actpts,
                    me.explores, me.discoveries, (INT)me.posx, (INT)me.posy,
+                   wld_size(), wld_size(),
                    camp_name(me.camplvl), camp_storage(me.camplvl),
                    me.res[RES_WOOD], me.res[RES_STONE], me.res[RES_METAL],
                    me.res[RES_FOOD], me.res[RES_WATER]);

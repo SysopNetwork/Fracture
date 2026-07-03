@@ -88,5 +88,6 @@
 #define RAIDBAD    99
 #define RAIDED    100
 #define APFREE    102
+#define HELP      104
 
 #define QUIPN      45      /* last arrival quip (lngrnd upper bound) */

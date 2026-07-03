@@ -139,6 +139,36 @@ pl_load(const CHAR *userid, struct fracplyr *p)
 }
 
 /* ---------------------------------------------------------------------- *
+ * pl_load_ci                                                            *
+ *                                                                        *
+ * Like pl_load, but matches the user-id case-insensitively by scanning   *
+ * the file, so a raider need not reproduce the target's exact casing     *
+ * ("himmey" finds "Himmey"). Fills *p with the record in its stored      *
+ * form (so callers get the canonical user-id back). Returns TRUE on a    *
+ * match. A linear scan is fine here: the roster is small and a raid is    *
+ * an occasional action.                                                   *
+ * ---------------------------------------------------------------------- */
+GBOOL EXPORT
+pl_load_ci(const CHAR *userid, struct fracplyr *p)
+{
+    struct fracplyr scan;
+    GBOOL found = 0;
+
+    dfaSetBlk(plyrdat);
+    if (dfaStepLO(&scan)) {
+        do {
+            if (sameas(scan.userid, (CHAR *)userid)) {
+                *p    = scan;
+                found = 1;
+                break;
+            }
+        } while (dfaStepNX(&scan));
+    }
+    dfaRstBlk();
+    return found;
+}
+
+/* ---------------------------------------------------------------------- *
  * pl_raidlist                                                            *
  *                                                                        *
  * Walk every player record and print the ones a raider may target: not   *

@@ -51,6 +51,11 @@ VOID  pl_delete(const CHAR *userid);  /* remove a player's record            */
 /* as a raid target.                                                            */
 GBOOL pl_load(const CHAR *userid, struct fracplyr *p);
 
+/* As pl_load, but matches the user-id case-insensitively (scans the file),   */
+/* so a raid target need only be spelled right, not cased right. *p receives   */
+/* the record with its stored user-id. Returns TRUE if a match was found.      */
+GBOOL pl_load_ci(const CHAR *userid, struct fracplyr *p);
+
 /* Print a list of raidable rivals - players other than `selfid` whose camp     */
 /* tier is at least `mincamp` - one per line, and return how many were shown.   */
 INT   pl_raidlist(const CHAR *selfid, INT mincamp);
