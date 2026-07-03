@@ -14,27 +14,31 @@ single player, and better with a crowd.
 
 ## Features
 
-- **Daily Action Point loop** — every meaningful action (travel, explore, harvest,
-  build, research, trade, raid) spends Action Points, encouraging quick 5–10 minute
-  sessions.
+- **Daily Action Point loop** — every meaningful action (travel, search, build,
+  research, raid) spends Action Points, encouraging quick 5–10 minute sessions.
 - **A world that evolves** — at midnight a configurable share of unexplored tiles is
-  regenerated. Player camps and player-built structures are always preserved.
-- **Exploration & first discoveries** — uncovering a location first earns permanent
-  server history, Fame, and a server-wide announcement.
-- **Camp building** — grow your home base from a Tent to a Citadel, unlocking storage,
-  production, workers, and defense.
-- **Research tree** — spend daily Research Points across multiple categories to unlock
-  better gathering, new buildings, and future content.
-- **Player-driven economy** — a shared marketplace for trading, auctions, gifts, mail,
-  and contracts.
+  regenerated. Charted ground and player camps are always preserved.
+- **Exploration & first discoveries** — charting a tile first earns Fame and a
+  permanent entry in the server chronicle, surfaced to everyone as daily news.
+- **Camp building** — grow your home base from a Tent to a Citadel; each tier raises
+  resource storage and houses a larger worker crew.
+- **Workers & passive production** — recruit a crew of NPC workers who gather
+  resources on their own each day, fed on Food and scaled by the weather.
+- **Research track** — a five-tier knowledge ladder bought with resources that
+  permanently raises gather yields and cheapens travel.
+- **Trading post** — a server-wide exchange for selling resources for Fame and
+  buying them back, with scarcity-weighted prices.
+- **Player raiding** — challenge a rival's camp and carry off a share of their
+  stores; newcomers still in a Tent can neither raid nor be raided.
 - **Fame instead of levels** — ranking is driven by what you discover and build, not
-  by grinding combat.
-- **Daily news, weather, events, missions, and leaderboards** that make the server
-  feel alive and give it a history of its own.
-- **ANSI interface** — 80x24, keyboard-driven, works in plain ASCII or with full color,
-  and runs well over Telnet.
-- **Highly configurable** — sysops can tune world size, Action Points, weather, PvP and
-  raiding, marketplace tax, production rates, event frequency, and more.
+  by grinding combat, with a live leaderboard of the server's top explorers.
+- **Daily news, weather, and seasons** that make the server feel alive and give the
+  world a history of its own.
+- **ANSI interface** — 80x24, keyboard-driven block-art screens that run well over
+  Telnet.
+- **Highly configurable** — sysops can tune world size, daily Action Points, world
+  regeneration, weather and season length, worker production, trading prices, and
+  raiding rules; every major system has an on/off switch.
 
 ## Installation
 
@@ -47,10 +51,11 @@ See [BUILDING.MD](BUILDING.MD) for instructions on building from source.
 
 ## Configuration
 
-Fracture exposes its gameplay tunables to the sysop (world size, daily Action Points,
-weather frequency, PvP/raiding toggles, marketplace tax, research speed, resource
-production, event frequency, season length, and camp limits). Configuration details
-are documented in [TECHNICAL.MD](TECHNICAL.MD).
+Fracture exposes its gameplay tunables as standard MBBS configuration options (world
+size, daily Action Points, midnight regeneration, weather and season length, worker
+production and upkeep, trading prices, raiding cost and loot, and on/off switches for
+each major system). The full option list is documented in
+[TECHNICAL.MD](TECHNICAL.MD).
 
 ## Usage
 

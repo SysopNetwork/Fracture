@@ -1,9 +1,7 @@
 # Fracture — Technical Reference
 
 This document describes the technical design of Fracture, a module for The Major BBS
-v10. It is maintained alongside the implementation: sections describing code that does
-not yet exist are marked **(planned)** and are filled in as the corresponding systems
-are built.
+v10, as implemented.
 
 ## 1. Module model
 
@@ -30,7 +28,7 @@ fields are callbacks invoked by the host:
 | status-input / injoth | reserved |
 | user logoff | per-user teardown |
 | hangup | handle lost carrier |
-| **midnight cleanup** | **daily world evolution and Action Point reset** |
+| **midnight cleanup** | **daily world evolution, weather, and seasons** |
 | delete-account | remove a deleted user's records from module data files |
 | shutdown | close message and data files cleanly |
 
@@ -39,11 +37,16 @@ through menu states using `usrptr->substt`, parsing input from `margv[]`.
 
 ### Daily tick
 
-The midnight cleanup callback is the heart of Fracture's "living world": it resets each
-player's Action Points, regenerates a configurable share of unexplored tiles, rolls the
-day's weather and events, and advances research and worker production. Keeping all
-time-based world changes in this single hook keeps the daily evolution deterministic
-and testable.
+Server-wide daily change runs in the midnight cleanup callback: it regenerates a
+configurable share of unexplored tiles (charted ground and camps are preserved) and
+rolls the new day's weather, advancing the season cycle. Both results are logged to
+the audit trail.
+
+Per-player daily change is deliberately **lazy** instead: Action Points refill, and
+worker production settles, on a player's first entry of a new day. This keeps the
+midnight routine short regardless of the player count and works correctly for
+players who skip days. The weather system also catches up lazily if a midnight tick
+was missed (for example, when the BBS was down overnight).
 
 ## 2. Presentation (messages and ANSI)
 
@@ -59,15 +62,23 @@ module opens the compiled message file and emits entries by name:
   `ynopt()`; this is the primary mechanism for sysop configuration toggles.
 
 A `.H` header maps message names to their numeric ids and is regenerated from the
-`.MSG` whenever messages change. The UI targets 80x24 and degrades gracefully to plain
-ASCII when color is unavailable.
+`.MSG` whenever messages change. The UI targets 80x24, drawn in a consistent shaded
+block-art ANSI style (CP437 `░▒▓█` banners, `▐▌` menu tabs, a fixed palette) recorded
+in ADR 0009.
+
+`FRACTURE.MSG` is **generated** by `TOOLS/GENMSG.PY` — edit the generator, not the
+`.MSG` text, when changing screens in source control. (Sysops remain free to reword
+the human-readable text of a deployed `.MSG`.) The host recompiles the `.MSG` to
+`.MCV` at startup, so no compiled message file is shipped. The `.MSG` and `.MDF`
+must keep CRLF line endings, or the host's configuration editor will not list the
+module's options (pinned via `.gitattributes`).
 
 ## 3. Persistence
 
 Fracture stores state in **Btrieve data files accessed through the DFA API** — there is
-no SQL database. Each major game system owns one or more `.DAT` files, shipped with a
-`.VIR` template so the host can create the file on first run. The `.MDF` declares the
-Btrieve page size and file count.
+no SQL database. Each major game system owns its own `.DAT` file, created
+programmatically on first run with `dfaCreateSpec()` (no `.VIR` templates are
+shipped). The `.MDF` declares the Btrieve page size and file count.
 
 Typical DFA usage pattern:
 
@@ -77,32 +88,83 @@ Typical DFA usage pattern:
 - `dfaAcqEQ()` to look up a record by key, `dfaInsert()` / `dfaDelete()` to modify, and
   `dfaStepLO()` / `dfaStepNX()` to iterate.
 
-### Data model (planned)
+### Data files
 
-Each logical entity maps to a record struct in a `.DAT` file. The intended set of data
-files, derived from the game design, includes: players, player camps, world tiles,
-buildings, resource stores, inventory, research, workers, marketplace listings,
-contracts, mail, events, artifacts, discoveries, history, weather, and statistics.
-Records are kept lean and keyed for the access patterns above; redundant data is
-avoided. The concrete record layouts are documented here as each system is implemented.
+| File | Owner | Contents | Key |
+|---|---|---|---|
+| `FRACTURE.DAT` | `PLAYER.C` | one record per player: Fame, Action Points, position, camp tier/location, resources, research tier, lifetime stats | user-id |
+| `FRACWLD.DAT` | `WORLD.C` | one record per world tile: terrain, charted flag | packed x/y coordinate |
+| `FRACHIST.DAT` | `HISTORY.C` | append-only server chronicle: first discoveries, camp builds; read newest-first for the news view | sequence number |
+| `FRACWX.DAT` | `WEATHER.C` | a single record: date, season, day's weather, days into the season | fixed |
+| `FRACWRK.DAT` | `WORKER.C` | one record per player: worker crew counts and last production day | user-id |
 
-## 4. Source organization (planned)
+Camp, resource, and research state live inside the player record rather than in
+separate files — they are one-to-one with the player and always read together.
+Records are kept lean and keyed for the access patterns above; the sequence counter
+for the chronicle is derived from the true maximum key at open (not the physically
+last record), so the file self-heals after deletions.
 
-Source lives under `SRC/`. Each major game system gets its own source files and its
-own data file(s) so new content can be added without modifying existing systems — the
-core engine (module lifecycle, daily tick, menu dispatch, persistence helpers) is kept
-separate from the individual feature systems (world, camp, exploration, research,
-buildings, economy, events, missions, workers, combat). This separation is the basis
-for the project's expandability goal.
+## 4. Source organization
+
+Source lives under `SRC/FRACTURE/`, one pair of files per game system, so new
+content can be added without modifying existing systems:
+
+| Files | System |
+|---|---|
+| `FRACTURE.C/.H` | module lifecycle, menu dispatch, command parsing, sysop options |
+| `PLAYER.C/.H` | player records, daily Action Point reset, leaderboard |
+| `WORLD.C/.H` | tile world: generation, travel, search/chart, minimap, midnight regeneration |
+| `RESOURCE.C/.H` | the five materials and per-terrain gather yields |
+| `CAMP.C/.H` | camp tiers, storage caps, upgrades |
+| `HISTORY.C/.H` | server chronicle and the daily news view |
+| `WEATHER.C/.H` | weather conditions and the season cycle |
+| `WORKER.C/.H` | NPC worker crews and passive production |
+| `MARKET.C/.H` | the trading post (resources ↔ Fame) |
+| `RESEARCH.C/.H` | the five-tier research track |
+| `RAID.C/.H` | player raiding |
+| `SYSOP.C/.H` | hidden in-game sysop tools (`!`), gated by the BBS SYSOP key |
+
+Design decisions for each system are recorded as ADRs in `DOCS/ADR/`.
 
 ## 5. Configuration
 
-Gameplay tunables are exposed to the sysop rather than hardcoded: world size, daily
-Action Points, weather frequency, PvP and raiding toggles, marketplace tax, research
-speed, resource production rates, event frequency, season length, and camp limits. New
-systems are expected to surface their balance parameters from the start. The mechanism
-(message-file options and/or a configuration file) is documented per setting as it is
-implemented.
+Every gameplay tunable is a standard MBBS configuration option declared in the
+`.MSG` (booleans read with `ynopt()`, numbers with `numopt()`), edited by the sysop
+in the host's configuration editor:
+
+| Option | Meaning | Default | Range |
+|---|---|---|---|
+| `WELCOPT` | greet players at logon | YES | B |
+| `DAYAP` | Action Points granted per player per day | 20 | 1–200 |
+| `APFREE` | refill Action Points on every entry (casual/test mode) | NO | B |
+| `WLDSIZ` | world size, tiles per edge | 40 | 8–64 |
+| `REGENPCT` | unexplored tiles regenerated each midnight (%) | 5 | 0–100 |
+| `WXOPT` | enable weather and seasons | YES | B |
+| `SEASLEN` | days per season | 7 | 1–90 |
+| `WRKOPT` | enable workers and production | YES | B |
+| `WRKPROD` | resource units produced per worker per day | 2 | 0–50 |
+| `WRKFOOD` | Food eaten per worker per day | 1 | 0–50 |
+| `MKTOPT` | enable the trading post | YES | B |
+| `MKTSELL` | Fame earned per resource unit sold | 2 | 0–100 |
+| `MKTBUY` | Fame charged per resource unit bought | 3 | 0–100 |
+| `RSCHOPT` | enable the research track | YES | B |
+| `RADOPT` | enable player raiding | YES | B |
+| `RADCOST` | Action Points per raid | 5 | 0–200 |
+| `RADLOOT` | percent of resources looted on a winning raid | 25 | 0–100 |
+
+Setting `REGENPCT` to 0 freezes the world; each major system's on/off switch
+(`WXOPT`, `WRKOPT`, `MKTOPT`, `RSCHOPT`, `RADOPT`) removes it from play cleanly. New
+systems are expected to surface their balance parameters from the start.
+
+## 6. Sysop tools
+
+A hidden `!` command at the main prompt — available only to users holding the BBS
+**SYSOP** key, and invisible to everyone else — provides live administration:
+`! find` inspects a player record, `! set` edits its fields, `! ap` grants Action
+Points (to one player or `ALL`), `! wipe <name> YES` deletes a player, and
+`! reset CONFIRM` wipes all players, regenerates the world, and clears the news.
+Destructive commands require their literal confirmation token. ADR 0014 records the
+design.
 
 ---
 

@@ -5,7 +5,13 @@ All notable changes to Fracture are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.0.0] - 2026-07-03
+
+First release: the complete core game — a persistent tile world with daily
+midnight evolution, exploration and first discoveries, camp building, resources,
+workers and passive production, weather and seasons, a research track, a trading
+post, player raiding, a server chronicle with daily news, a Fame leaderboard, and
+in-game sysop tools.
 
 ### Changed
 - The location/map screen and every command prompt gained consistent spacing: a
