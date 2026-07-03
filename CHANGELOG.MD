@@ -5,7 +5,11 @@ All notable changes to Fracture are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.1.0] - 2026-07-03
+
+Freely editable message text and cleaner menus: every dynamic value in the
+message file is now a named text variable the sysop can move at will, and both
+menus were rebuilt as aligned grids.
 
 ### Changed
 - Every dynamic value in the message file — names, amounts, costs, coordinates,

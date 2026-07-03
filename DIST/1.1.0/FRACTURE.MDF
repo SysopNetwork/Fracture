@@ -1,0 +1,27 @@
+; FRACTURE.MDF
+
+Module Name: Fracture
+
+Developer: Mark Laudenbach (SysopNetwork.com)
+
+Requires:
+Replaces:
+
+Install:
+
+Online user manual:
+
+DLLs: FRACTURE
+MSGs: FRACTURE
+
+Btrieve page size: 1024
+Btrieve files:     5
+
+Cleanup:
+
+Event-1:
+Event-2:
+Event-3:
+Event-4:
+
+Add-On Utility:
