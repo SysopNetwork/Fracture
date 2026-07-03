@@ -406,7 +406,11 @@ CRLF = '\r\n'
 out = []
 out.append('')  # leading blank line (file begins with CRLF)
 
-# --- config: general ---
+# --- configuration options -----------------------------------------------
+# ALL options live under this ONE LEVEL4 marker. The CNF editor groups a
+# file's options by level, and items of the same level must sit under a
+# single LEVELn grouping - a second LEVEL4 section later in the file does
+# not appear. (Same rule for the LEVEL6 text grouping further down.)
 out.append('LEVEL4 {Fracture: configurable options}')
 out.append('')
 out.append(' If you want Fracture to greet players with a short message as')
@@ -419,26 +423,19 @@ out.append(' Points are spent on actions such as traveling and searching.')
 out.append('')
 out.append('DAYAP {Action Points granted to each player per day? 20} N 1 200')
 out.append('')
+out.append(' Refill every player\'s Action Points to the full daily amount on')
+out.append(' each entry, instead of only at the midnight reset. Intended for')
+out.append(' testing and casual servers that do not want a daily cap. Leave this')
+out.append(' NO for normal play.')
+out.append('')
+out.append('APFREE {Refill Action Points on every entry? NO} B')
+out.append('')
 out.append(' The size of the world, in tiles, along each edge. The world is')
 out.append(' first generated at this size. Changing it later resizes the')
 out.append(' playable area on the next launch; any player left outside the new')
 out.append(' bounds is brought home to their camp.')
 out.append('')
 out.append('WLDSIZ {World size (tiles per edge)? 40} N 8 64')
-out.append('')
-out.append('LEVEL6 {Fracture: module text}')
-out.append('')
-
-# --- module text (restyled) ---
-for m in [LOGON, MAINMEN, SHORTM, STATUS, EXITMSG, INVALID, FIRSTM, NOAP,
-          EXPNADA, NEWTILE, EDGE, MOVED, LOOKHD, LEGEND, GATHER, CAMPVW,
-          CAMPUPC, CAMPMAX, CAMPUP, CANTAFF, STORFUL, NEWSHDR, NEWSDSC,
-          NEWSBLD, NEWSNON, NEWSFTR]:
-    out.append(m.rstrip('\r\n'))   # each T() already ends with CRLF; add blank sep below
-    out.append('')
-
-# --- config: world evolution ---
-out.append('LEVEL4 {Fracture: world evolution}')
 out.append('')
 out.append(' The percentage of unexplored tiles regenerated with fresh terrain')
 out.append(' each midnight, during the nightly cleanup. Charted tiles, camps,')
@@ -447,16 +444,25 @@ out.append(' the world.')
 out.append('')
 out.append('REGENPCT {Unexplored tiles regenerated each midnight (%)? 5} N 0 100')
 out.append('')
-
-# --- arrival quips ---
-out.append('LEVEL6 {Fracture: arrival quips}')
+out.append(' Base Action Points to travel one tile. Storms and snow add to it,')
+out.append(' and high research tiers take one off; a move always costs at')
+out.append(' least 1.')
 out.append('')
-for i, txt in enumerate(QUIP_TEXT, start=1):
-    out.append(quip(i, txt).rstrip('\r\n'))
-    out.append('')
-
-# --- config: weather & seasons ---
-out.append('LEVEL4 {Fracture: weather & seasons}')
+out.append('TRAVAP {Action Points to travel one tile? 1} N 1 20')
+out.append('')
+out.append(' Action Points to search the current tile.')
+out.append('')
+out.append('SRCHAP {Action Points to search a tile? 1} N 1 20')
+out.append('')
+out.append(' The most Fame a first discovery can award. Charting a tile nobody')
+out.append(' has seen rolls between 40% of this and this.')
+out.append('')
+out.append('FAMEDISC {Greatest Fame for a first discovery? 20} N 1 500')
+out.append('')
+out.append(' Fame earned for raising the camp, per tier reached (building to')
+out.append(' tier 3 earns three times this).')
+out.append('')
+out.append('FAMEBLD {Fame per camp tier when building? 10} N 0 500')
 out.append('')
 out.append(' Turn the daily weather and season cycle on or off. When on, one')
 out.append(' weather condition affects the whole server each day (shown on')
@@ -471,14 +477,6 @@ out.append(' next. Seasons cycle Spring, Summer, Autumn, Winter and bias which')
 out.append(' weather each day is likely to bring.')
 out.append('')
 out.append('SEASLEN {Days per season? 7} N 1 90')
-out.append('')
-out.append('LEVEL6 {Fracture: weather text}')
-out.append('')
-out.append(WXLINE.rstrip('\r\n'))
-out.append('')
-
-# --- config: workers & production ---
-out.append('LEVEL4 {Fracture: workers & production}')
 out.append('')
 out.append(' Turn the crew system on or off. When on, players can house NPC')
 out.append(' workers at their camp (up to a limit set by the camp tier) who')
@@ -498,14 +496,11 @@ out.append(' crew, the hungry workers still produce but the shortfall is noted.'
 out.append('')
 out.append('WRKFOOD {Food eaten per worker per day? 1} N 0 50')
 out.append('')
-out.append('LEVEL6 {Fracture: worker text}')
+out.append(' What recruiting one worker costs, in Wood and in Food.')
 out.append('')
-for m in [CREWHD, CREWFT, HIRED, HIREFUL, HIRECST, HIREBAD, PRODSUM, PRODHUN]:
-    out.append(m.rstrip('\r\n'))
-    out.append('')
-
-# --- config: trading post ---
-out.append('LEVEL4 {Fracture: trading post}')
+out.append('WRKCWOOD {Wood cost to recruit a worker? 8} N 0 200')
+out.append('')
+out.append('WRKCFOOD {Food cost to recruit a worker? 4} N 0 200')
 out.append('')
 out.append(' Turn the trading post on or off. When on, players can sell')
 out.append(' gathered resources for Fame and buy resources back with Fame at')
@@ -523,33 +518,15 @@ out.append(' or above the sell rate so trading is not a free source of Fame.')
 out.append('')
 out.append('MKTBUY {Fame charged per resource unit bought? 3} N 0 100')
 out.append('')
-out.append('LEVEL6 {Fracture: market text}')
-out.append('')
-for m in [MARKHD, MARKFT, SOLD, BOUGHT, MKTFULL, MKTNORE, MKTNOFA, MKTBADR]:
-    out.append(m.rstrip('\r\n'))
-    out.append('')
-
-# --- config: research ---
-out.append('LEVEL4 {Fracture: research}')
-out.append('')
 out.append(' Turn the research track on or off. When on, players spend gathered')
 out.append(' resources to advance research tiers, each of which permanently')
 out.append(' raises how much searching yields and, higher up, cheapens travel.')
 out.append('')
 out.append('RSCHOPT {Enable the research track? YES} B')
 out.append('')
-out.append('LEVEL6 {Fracture: research text}')
-out.append('')
-for m in [RSCHHD, RSCHFT, RSCHUP, RSCHMAX, RSCHNOR]:
-    out.append(m.rstrip('\r\n'))
-    out.append('')
-
-# --- config: raiding ---
-out.append('LEVEL4 {Fracture: raiding}')
-out.append('')
 out.append(' Turn player-versus-player raiding on or off. When on, a player with')
-out.append(' a camp built past a Tent can raid a rival to carry off a share of')
-out.append(' their resources; newcomers (still in a Tent) cannot raid or be')
+out.append(' an established camp can raid a rival to carry off a share of their')
+out.append(' resources; newcomers below the required camp tier cannot raid or be')
 out.append(' raided. Set to NO for a purely peaceful server.')
 out.append('')
 out.append('RADOPT {Enable player raiding? YES} B')
@@ -564,44 +541,6 @@ out.append(' carries off (capped by the raider\'s own storage).')
 out.append('')
 out.append('RADLOOT {Percent of resources looted on a win? 25} N 0 100')
 out.append('')
-out.append('LEVEL6 {Fracture: raid text}')
-out.append('')
-for m in [RAIDHD, RAIDFT, RAIDEMP, RAIDWIN, RAIDREP, RAIDNOAP, RAIDPROT,
-          RAIDWEAK, RAIDSELF, RAIDBAD, RAIDED]:
-    out.append(m.rstrip('\r\n'))
-    out.append('')
-
-# --- config: testing / casual play ---
-out.append('LEVEL4 {Fracture: testing}')
-out.append('')
-out.append(' Refill every player\'s Action Points to the full daily amount on')
-out.append(' each entry, instead of only at the midnight reset. Intended for')
-out.append(' testing and casual servers that do not want a daily cap. Leave this')
-out.append(' NO for normal play.')
-out.append('')
-out.append('APFREE {Refill Action Points on every entry? NO} B')
-out.append('')
-
-# --- help text (emitted last so message numbers of existing entries hold) ---
-out.append('LEVEL6 {Fracture: help text}')
-out.append('')
-out.append(HELP.rstrip('\r\n'))
-out.append('')
-
-# --- config: gameplay tuning (appended after everything above so the ---
-# --- message numbers of all existing entries hold)                    ---
-out.append('LEVEL4 {Fracture: gameplay tuning}')
-out.append('')
-out.append(' The most Fame a first discovery can award. Charting a tile nobody')
-out.append(' has seen rolls between 40% of this and this.')
-out.append('')
-out.append('FAMEDISC {Greatest Fame for a first discovery? 20} N 1 500')
-out.append('')
-out.append(' Fame earned for raising the camp, per tier reached (building to')
-out.append(' tier 3 earns three times this).')
-out.append('')
-out.append('FAMEBLD {Fame per camp tier when building? 10} N 0 500')
-out.append('')
 out.append(' Fame the attacker earns for winning a raid.')
 out.append('')
 out.append('RADFAME {Fame for winning a raid? 5} N 0 100')
@@ -613,22 +552,6 @@ out.append(' nor be raided.')
 out.append('')
 out.append('RADMIN {Camp tier required to raid or be raided? 1} N 0 5')
 out.append('')
-out.append(' Base Action Points to travel one tile. Storms and snow add to it,')
-out.append(' and high research tiers take one off; a move always costs at')
-out.append(' least 1.')
-out.append('')
-out.append('TRAVAP {Action Points to travel one tile? 1} N 1 20')
-out.append('')
-out.append(' Action Points to search the current tile.')
-out.append('')
-out.append('SRCHAP {Action Points to search a tile? 1} N 1 20')
-out.append('')
-out.append(' What recruiting one worker costs, in Wood and in Food.')
-out.append('')
-out.append('WRKCWOOD {Wood cost to recruit a worker? 8} N 0 200')
-out.append('')
-out.append('WRKCFOOD {Food cost to recruit a worker? 4} N 0 200')
-out.append('')
 out.append(' How many chronicle entries the news view (H) shows, newest first.')
 out.append('')
 out.append('NEWSMAX {News entries shown? 12} N 1 20')
@@ -636,6 +559,52 @@ out.append('')
 out.append(' How many explorers the Fame leaderboard (F) lists.')
 out.append('')
 out.append('BRDMAX {Rows on the Fame leaderboard? 15} N 3 20')
+out.append('')
+
+# --- text entries: all under this ONE LEVEL6 grouping (see note above) ----
+out.append('LEVEL6 {Fracture: module text}')
+out.append('')
+
+# --- module text (restyled) ---
+for m in [LOGON, MAINMEN, SHORTM, STATUS, EXITMSG, INVALID, FIRSTM, NOAP,
+          EXPNADA, NEWTILE, EDGE, MOVED, LOOKHD, LEGEND, GATHER, CAMPVW,
+          CAMPUPC, CAMPMAX, CAMPUP, CANTAFF, STORFUL, NEWSHDR, NEWSDSC,
+          NEWSBLD, NEWSNON, NEWSFTR]:
+    out.append(m.rstrip('\r\n'))   # each T() already ends with CRLF; add blank sep below
+    out.append('')
+
+# --- arrival quips ---
+for i, txt in enumerate(QUIP_TEXT, start=1):
+    out.append(quip(i, txt).rstrip('\r\n'))
+    out.append('')
+
+# --- weather text ---
+out.append(WXLINE.rstrip('\r\n'))
+out.append('')
+
+# --- worker text ---
+for m in [CREWHD, CREWFT, HIRED, HIREFUL, HIRECST, HIREBAD, PRODSUM, PRODHUN]:
+    out.append(m.rstrip('\r\n'))
+    out.append('')
+
+# --- market text ---
+for m in [MARKHD, MARKFT, SOLD, BOUGHT, MKTFULL, MKTNORE, MKTNOFA, MKTBADR]:
+    out.append(m.rstrip('\r\n'))
+    out.append('')
+
+# --- research text ---
+for m in [RSCHHD, RSCHFT, RSCHUP, RSCHMAX, RSCHNOR]:
+    out.append(m.rstrip('\r\n'))
+    out.append('')
+
+# --- raid text ---
+for m in [RAIDHD, RAIDFT, RAIDEMP, RAIDWIN, RAIDREP, RAIDNOAP, RAIDPROT,
+          RAIDWEAK, RAIDSELF, RAIDBAD, RAIDED]:
+    out.append(m.rstrip('\r\n'))
+    out.append('')
+
+# --- help text ---
+out.append(HELP.rstrip('\r\n'))
 out.append('')
 
 text = CRLF.join(out) + CRLF

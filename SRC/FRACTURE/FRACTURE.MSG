@@ -11,12 +11,142 @@ WELCOPT {Greet players at logon? YES} B
 
 DAYAP {Action Points granted to each player per day? 20} N 1 200
 
+ Refill every player's Action Points to the full daily amount on
+ each entry, instead of only at the midnight reset. Intended for
+ testing and casual servers that do not want a daily cap. Leave this
+ NO for normal play.
+
+APFREE {Refill Action Points on every entry? NO} B
+
  The size of the world, in tiles, along each edge. The world is
  first generated at this size. Changing it later resizes the
  playable area on the next launch; any player left outside the new
  bounds is brought home to their camp.
 
 WLDSIZ {World size (tiles per edge)? 40} N 8 64
+
+ The percentage of unexplored tiles regenerated with fresh terrain
+ each midnight, during the nightly cleanup. Charted tiles, camps,
+ and player-built structures are never changed. Set to 0 to freeze
+ the world.
+
+REGENPCT {Unexplored tiles regenerated each midnight (%)? 5} N 0 100
+
+ Base Action Points to travel one tile. Storms and snow add to it,
+ and high research tiers take one off; a move always costs at
+ least 1.
+
+TRAVAP {Action Points to travel one tile? 1} N 1 20
+
+ Action Points to search the current tile.
+
+SRCHAP {Action Points to search a tile? 1} N 1 20
+
+ The most Fame a first discovery can award. Charting a tile nobody
+ has seen rolls between 40% of this and this.
+
+FAMEDISC {Greatest Fame for a first discovery? 20} N 1 500
+
+ Fame earned for raising the camp, per tier reached (building to
+ tier 3 earns three times this).
+
+FAMEBLD {Fame per camp tier when building? 10} N 0 500
+
+ Turn the daily weather and season cycle on or off. When on, one
+ weather condition affects the whole server each day (shown on
+ entry, in status, and with the news), gathering yields rise and
+ fall with it, and storms and snow make travel cost more Action
+ Points.
+
+WXOPT {Enable weather and seasons? YES} B
+
+ How many days each season lasts before the world turns to the
+ next. Seasons cycle Spring, Summer, Autumn, Winter and bias which
+ weather each day is likely to bring.
+
+SEASLEN {Days per season? 7} N 1 90
+
+ Turn the crew system on or off. When on, players can house NPC
+ workers at their camp (up to a limit set by the camp tier) who
+ produce resources passively - one day's worth each new day the
+ player logs in. The crew eats Food, and the day's weather scales
+ what they produce.
+
+WRKOPT {Enable workers and production? YES} B
+
+ Base units of its resource each worker produces per day, before
+ the day's weather is applied.
+
+WRKPROD {Resource units produced per worker per day? 2} N 0 50
+
+ Food each worker eats per day. If the camp cannot feed the whole
+ crew, the hungry workers still produce but the shortfall is noted.
+
+WRKFOOD {Food eaten per worker per day? 1} N 0 50
+
+ What recruiting one worker costs, in Wood and in Food.
+
+WRKCWOOD {Wood cost to recruit a worker? 8} N 0 200
+
+WRKCFOOD {Food cost to recruit a worker? 4} N 0 200
+
+ Turn the trading post on or off. When on, players can sell
+ gathered resources for Fame and buy resources back with Fame at
+ the rates below (each scaled by how scarce the resource is).
+
+MKTOPT {Enable the trading post? YES} B
+
+ Base Fame earned for each unit of a resource sold, before the
+ per-resource weight is applied.
+
+MKTSELL {Fame earned per resource unit sold? 2} N 0 100
+
+ Base Fame charged for each unit of a resource bought. Keep this at
+ or above the sell rate so trading is not a free source of Fame.
+
+MKTBUY {Fame charged per resource unit bought? 3} N 0 100
+
+ Turn the research track on or off. When on, players spend gathered
+ resources to advance research tiers, each of which permanently
+ raises how much searching yields and, higher up, cheapens travel.
+
+RSCHOPT {Enable the research track? YES} B
+
+ Turn player-versus-player raiding on or off. When on, a player with
+ an established camp can raid a rival to carry off a share of their
+ resources; newcomers below the required camp tier cannot raid or be
+ raided. Set to NO for a purely peaceful server.
+
+RADOPT {Enable player raiding? YES} B
+
+ Action Points a raid costs the attacker, win or lose. A higher cost
+ makes raiding a bigger commitment of the daily pool.
+
+RADCOST {Action Points per raid? 5} N 0 200
+
+ Percentage of each of the defender's resources a successful raid
+ carries off (capped by the raider's own storage).
+
+RADLOOT {Percent of resources looted on a win? 25} N 0 100
+
+ Fame the attacker earns for winning a raid.
+
+RADFAME {Fame for winning a raid? 5} N 0 100
+
+ Camp tier a player must have built before raiding - and a defender
+ must have before being raidable: 0 Tent, 1 Cabin, 2 Outpost,
+ 3 Settlement, 4 Fort, 5 Citadel. Players below it can neither raid
+ nor be raided.
+
+RADMIN {Camp tier required to raid or be raided? 1} N 0 5
+
+ How many chronicle entries the news view (H) shows, newest first.
+
+NEWSMAX {News entries shown? 12} N 1 20
+
+ How many explorers the Fame leaderboard (F) lists.
+
+BRDMAX {Rows on the Fame leaderboard? 15} N 3 20
 
 LEVEL6 {Fracture: module text}
 
@@ -154,17 +284,6 @@ NEWSNON {  [1;33mThe chronicle is empty. Be the first to make history.[0m
 NEWSFTR {  [1;36m∞±≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤±∞[0m
 [0m} T News footer
 
-LEVEL4 {Fracture: world evolution}
-
- The percentage of unexplored tiles regenerated with fresh terrain
- each midnight, during the nightly cleanup. Charted tiles, camps,
- and player-built structures are never changed. Set to 0 to freeze
- the world.
-
-REGENPCT {Unexplored tiles regenerated each midnight (%)? 5} N 0 100
-
-LEVEL6 {Fracture: arrival quips}
-
 QUIP1 {[2J
   [1;36m≤±∞[0m [1;33m"Finally, I'm here."[0m
 [0m} T Arrival quip 1
@@ -213,48 +332,8 @@ QUIP12 {[2J
   [1;36m≤±∞[0m [1;33m"The disappointment is mutual."[0m
 [0m} T Arrival quip 12
 
-LEVEL4 {Fracture: weather & seasons}
-
- Turn the daily weather and season cycle on or off. When on, one
- weather condition affects the whole server each day (shown on
- entry, in status, and with the news), gathering yields rise and
- fall with it, and storms and snow make travel cost more Action
- Points.
-
-WXOPT {Enable weather and seasons? YES} B
-
- How many days each season lasts before the world turns to the
- next. Seasons cycle Spring, Summer, Autumn, Winter and bias which
- weather each day is likely to bring.
-
-SEASLEN {Days per season? 7} N 1 90
-
-LEVEL6 {Fracture: weather text}
-
 WXLINE {  [1;36m∞±≤€[0m [1;37mWeather [1;33mN!FRA_WX[0;37m - N!FRA_WXDESC[1;37m   Season [1;33mN!FRA_SEASON[0m
 [0m} T Weather & season line
-
-LEVEL4 {Fracture: workers & production}
-
- Turn the crew system on or off. When on, players can house NPC
- workers at their camp (up to a limit set by the camp tier) who
- produce resources passively - one day's worth each new day the
- player logs in. The crew eats Food, and the day's weather scales
- what they produce.
-
-WRKOPT {Enable workers and production? YES} B
-
- Base units of its resource each worker produces per day, before
- the day's weather is applied.
-
-WRKPROD {Resource units produced per worker per day? 2} N 0 50
-
- Food each worker eats per day. If the camp cannot feed the whole
- crew, the hungry workers still produce but the shortfall is noted.
-
-WRKFOOD {Food eaten per worker per day? 1} N 0 50
-
-LEVEL6 {Fracture: worker text}
 
 CREWHD {[2J
   [1;36m≤±∞€[0m [1;37mYOUR CREW[0m [1;36m€∞±≤[0m
@@ -284,26 +363,6 @@ PRODSUM {  [1;32m≤±∞[0m [0;37mWhile you were away your crew stocked [1;32mN
 PRODHUN {  [1;31mﬁ[0m [1;31mSome workers went hungry - keep Food in storage.[0m
 } T Workers hungry
 
-LEVEL4 {Fracture: trading post}
-
- Turn the trading post on or off. When on, players can sell
- gathered resources for Fame and buy resources back with Fame at
- the rates below (each scaled by how scarce the resource is).
-
-MKTOPT {Enable the trading post? YES} B
-
- Base Fame earned for each unit of a resource sold, before the
- per-resource weight is applied.
-
-MKTSELL {Fame earned per resource unit sold? 2} N 0 100
-
- Base Fame charged for each unit of a resource bought. Keep this at
- or above the sell rate so trading is not a free source of Fame.
-
-MKTBUY {Fame charged per resource unit bought? 3} N 0 100
-
-LEVEL6 {Fracture: market text}
-
 MARKHD {[2J
   [1;36m≤±∞€[0m [1;37mTRADING POST[0m [1;36m€∞±≤[0m
   [1;36m∞±≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤±∞[0m
@@ -332,16 +391,6 @@ MKTNOFA {  [1;31mﬁ[0m [1;31mYou do not have enough Fame to buy any.[0m
 MKTBADR {  [1;31mﬁ[0m [1;31mThat is not a valid trade. Use [1;37mM S 3 10[1;31m to sell, [1;37mM B 3 10[1;31m to buy.[0m
 } T Market - bad trade
 
-LEVEL4 {Fracture: research}
-
- Turn the research track on or off. When on, players spend gathered
- resources to advance research tiers, each of which permanently
- raises how much searching yields and, higher up, cheapens travel.
-
-RSCHOPT {Enable the research track? YES} B
-
-LEVEL6 {Fracture: research text}
-
 RSCHHD {[2J
   [1;36m≤±∞€[0m [1;37mRESEARCH BENCH[0m [1;36m€∞±≤[0m
   [1;36m∞±≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤±∞[0m
@@ -360,27 +409,6 @@ RSCHMAX {  [1;35m≤±∞[0m [1;35mResearch complete - you have mastered every fie
 
 RSCHNOR {  [1;31mﬁ[0m [1;31mYou do not have the resources for the next tier yet.[0m
 } T Research - cannot afford
-
-LEVEL4 {Fracture: raiding}
-
- Turn player-versus-player raiding on or off. When on, a player with
- a camp built past a Tent can raid a rival to carry off a share of
- their resources; newcomers (still in a Tent) cannot raid or be
- raided. Set to NO for a purely peaceful server.
-
-RADOPT {Enable player raiding? YES} B
-
- Action Points a raid costs the attacker, win or lose. A higher cost
- makes raiding a bigger commitment of the daily pool.
-
-RADCOST {Action Points per raid? 5} N 0 200
-
- Percentage of each of the defender's resources a successful raid
- carries off (capped by the raider's own storage).
-
-RADLOOT {Percent of resources looted on a win? 25} N 0 100
-
-LEVEL6 {Fracture: raid text}
 
 RAIDHD {[2J
   [1;36m≤±∞€[0m [1;37mRAID A RIVAL[0m [1;36m€∞±≤[0m
@@ -419,17 +447,6 @@ RAIDBAD {  [1;31mﬁ[0m [1;31mNo such rival. Check the name and try [1;37mA na
 RAIDED {  [1;31m≤±∞ RAIDED! [0m[0;37mWhile you were away your camp was raided [1;37mN!FRA_AMT[0;37m time(s).[0m
 [0m} T You were raided
 
-LEVEL4 {Fracture: testing}
-
- Refill every player's Action Points to the full daily amount on
- each entry, instead of only at the midnight reset. Intended for
- testing and casual servers that do not want a daily cap. Leave this
- NO for normal play.
-
-APFREE {Refill Action Points on every entry? NO} B
-
-LEVEL6 {Fracture: help text}
-
 HELP {[2J
   [1;36m≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤≤[0m
   [1;36m≤±∞[0m  [1;37mHOW TO PLAY                                                     [0m  [1;36m∞±≤[0m
@@ -454,51 +471,4 @@ HELP {[2J
   [0;37mtop the [1;37mF[0;37m board. [1;37mL[0;37mook, [1;37mT[0;37m status, [1;37mF[0;37m board and [1;37m?[0;37m help all cost no AP.[0m
 
   [1;30mPress [1;37mENTER[1;30m to return.[0m} T How to play
-
-LEVEL4 {Fracture: gameplay tuning}
-
- The most Fame a first discovery can award. Charting a tile nobody
- has seen rolls between 40% of this and this.
-
-FAMEDISC {Greatest Fame for a first discovery? 20} N 1 500
-
- Fame earned for raising the camp, per tier reached (building to
- tier 3 earns three times this).
-
-FAMEBLD {Fame per camp tier when building? 10} N 0 500
-
- Fame the attacker earns for winning a raid.
-
-RADFAME {Fame for winning a raid? 5} N 0 100
-
- Camp tier a player must have built before raiding - and a defender
- must have before being raidable: 0 Tent, 1 Cabin, 2 Outpost,
- 3 Settlement, 4 Fort, 5 Citadel. Players below it can neither raid
- nor be raided.
-
-RADMIN {Camp tier required to raid or be raided? 1} N 0 5
-
- Base Action Points to travel one tile. Storms and snow add to it,
- and high research tiers take one off; a move always costs at
- least 1.
-
-TRAVAP {Action Points to travel one tile? 1} N 1 20
-
- Action Points to search the current tile.
-
-SRCHAP {Action Points to search a tile? 1} N 1 20
-
- What recruiting one worker costs, in Wood and in Food.
-
-WRKCWOOD {Wood cost to recruit a worker? 8} N 0 200
-
-WRKCFOOD {Food cost to recruit a worker? 4} N 0 200
-
- How many chronicle entries the news view (H) shows, newest first.
-
-NEWSMAX {News entries shown? 12} N 1 20
-
- How many explorers the Fame leaderboard (F) lists.
-
-BRDMAX {Rows on the Fame leaderboard? 15} N 3 20
 

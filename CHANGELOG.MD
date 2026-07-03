@@ -102,7 +102,10 @@ value is a named text variable).
   `WRKCFOOD`), the camp tier required to raid or be raided (`RADMIN`), and
   the sizes of the news view and the Fame leaderboard (`NEWSMAX`, `BRDMAX`).
   The raid screens now name the required camp tier — and the raid-win Fame —
-  from the live settings instead of fixed text.
+  from the live settings instead of fixed text. In the configuration editor
+  all options appear under a single "Fracture: configurable options" section
+  and all message text under a single "Fracture: module text" section (the
+  editor shows one grouping per level per file).
 - In-game sysop tools (`SYSOP.C`/`.H`): live administration gated by the BBS
   **SYSOP** key, reached from the main prompt with a hidden **!** command that is
   invisible to players. `! find <name>` shows a player's full record; `! set <name>
