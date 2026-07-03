@@ -77,6 +77,7 @@ struct module FRACTURE = {
 HMCVFILE fracmb;                     /* module message file handle           */
 GBOOL    show_welcome;               /* sysop option: greet users at logon?  */
 INT      daily_ap;                   /* sysop option: Action Points per day  */
+GBOOL    ap_free;                    /* sysop option: refill AP every entry  */
 INT      world_sz;                   /* sysop option: world dimension        */
 INT      regen_pct;                  /* sysop option: % unexplored tiles     */
                                      /* regenerated each midnight            */
@@ -116,6 +117,7 @@ init__fracture(VOID)
     fracmb = opnmsg("FRACTURE.MCV");
     show_welcome = ynopt(WELCOPT);
     daily_ap     = numopt(DAYAP, 1, 200);
+    ap_free      = ynopt(APFREE);
     world_sz     = numopt(WLDSIZ, 8, WLDMAX);
     regen_pct    = numopt(REGENPCT, 0, 100);
     weather_on   = ynopt(WXOPT);
@@ -772,6 +774,13 @@ module_main(VOID)
             me.posx = me.campx;
             me.posy = me.campy;
         }
+        pl_write(&me);
+    }
+
+    if (ap_free && me.actpts < daily_ap) {
+        /* testing / casual play: top the pool back up on every entry instead *
+         * of only at the new-day reset (sysop option APFREE, default NO)      */
+        me.actpts = daily_ap;
         pl_write(&me);
     }
 

@@ -421,3 +421,12 @@ RAIDBAD {  [1;31mﬁ[0m [1;31mNo such rival. Check the name and try [1;37mA na
 RAIDED {  [1;31m≤±∞ RAIDED! [0m[0;37mWhile you were away your camp was raided [1;37m%d[0;37m time(s).[0m
 [0m} T You were raided
 
+LEVEL4 {Fracture: testing}
+
+ Refill every player's Action Points to the full daily amount on
+ each entry, instead of only at the midnight reset. Intended for
+ testing and casual servers that do not want a daily cap. Leave this
+ NO for normal play.
+
+APFREE {Refill Action Points on every entry? NO} B
+

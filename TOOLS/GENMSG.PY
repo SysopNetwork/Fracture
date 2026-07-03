@@ -521,6 +521,17 @@ for m in [RAIDHD, RAIDFT, RAIDEMP, RAIDWIN, RAIDREP, RAIDNOAP, RAIDPROT,
     out.append(m.rstrip('\r\n'))
     out.append('')
 
+# --- config: testing / casual play ---
+out.append('LEVEL4 {Fracture: testing}')
+out.append('')
+out.append(' Refill every player\'s Action Points to the full daily amount on')
+out.append(' each entry, instead of only at the midnight reset. Intended for')
+out.append(' testing and casual servers that do not want a daily cap. Leave this')
+out.append(' NO for normal play.')
+out.append('')
+out.append('APFREE {Refill Action Points on every entry? NO} B')
+out.append('')
+
 text = CRLF.join(out) + CRLF
 data = text.encode('cp437')
 
