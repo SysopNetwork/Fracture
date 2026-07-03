@@ -99,6 +99,13 @@ GBOOL    research_on;                /* sysop option: research track?        */
 GBOOL    raid_on;                    /* sysop option: PvP raiding?           */
 INT      raid_ap;                    /* sysop option: Action Points per raid */
 INT      raid_loot;                  /* sysop option: loot percentage        */
+INT      fame_disc;                  /* sysop option: top of the discovery   */
+                                     /* Fame roll (floor is 40% of it)       */
+INT      fame_bld;                   /* sysop option: Fame per camp tier     */
+INT      trav_ap;                    /* sysop option: base travel AP cost    */
+INT      srch_ap;                    /* sysop option: search AP cost         */
+INT      news_max;                   /* sysop option: news entries shown     */
+INT      brd_max;                    /* sysop option: leaderboard rows       */
 
 /* Fracture paints its own full-screen pages, so while a user is in the game *
  * we suppress the host's output more-prompt ("(N)onstop,(Q)uit,(C)ontinue?")*
@@ -138,16 +145,26 @@ init__fracture(VOID)
     raid_on      = ynopt(RADOPT);
     raid_ap      = numopt(RADCOST, 0, 200);
     raid_loot    = numopt(RADLOOT, 0, 100);
+    fame_disc    = numopt(FAMEDISC, 1, 500);
+    fame_bld     = numopt(FAMEBLD, 0, 500);
+    trav_ap      = numopt(TRAVAP, 1, 20);
+    srch_ap      = numopt(SRCHAP, 1, 20);
+    news_max     = numopt(NEWSMAX, 1, 20);
+    brd_max      = numopt(BRDMAX, 3, 20);
 
     tvar_init();                     /* named text variables for the messages */
     pl_open();                       /* persistent players                   */
     wld_open(world_sz);              /* the map (generated on first run)     */
     hist_open();                     /* the shared server chronicle          */
     wx_open(weather_on, season_len); /* today's weather and the season cycle */
-    wrk_open(workers_on, wrk_prod, wrk_food); /* the crew / production system */
+    wrk_open(workers_on, wrk_prod, wrk_food,
+             numopt(WRKCWOOD, 0, 200),
+             numopt(WRKCFOOD, 0, 200)); /* the crew / production system       */
     market_open(market_on, mkt_sell, mkt_buy); /* the trading post exchange   */
     rsch_open(research_on);          /* the research knowledge track          */
-    raid_open(raid_on, raid_ap, raid_loot); /* player-versus-player raiding    */
+    raid_open(raid_on, raid_ap, raid_loot,
+              numopt(RADFAME, 0, 100),
+              numopt(RADMIN, 0, 5));  /* player-versus-player raiding         */
 
     /* summary <= 32 chars, detail <= 63 - both show on the audit trail     */
     shocst("Fracture's here. Act impressed.",
@@ -258,10 +275,34 @@ do_look(struct fracplyr *p)
     prfmsg(LEGEND);
 }
 
+/* Fame awarded for a first discovery: rolled between 40% of the sysop's     */
+/* FAMEDISC ceiling and the ceiling itself (the stock 20 gives the classic   */
+/* 8..20 roll).                                                              */
+static INT
+disc_fame(VOID)
+{
+    INT lo = fame_disc * 2 / 5;
+
+    if (lo < 1)
+        lo = 1;
+    return (INT)lngrnd(lo, fame_disc);
+}
+
+/* Action Points one move costs: the sysop's base, plus the day's weather     */
+/* surcharge, less the research discount - but never below 1.                 */
+static INT
+move_cost(struct fracplyr *p)
+{
+    INT cost = trav_ap + wx_travcost() - 1;   /* wx_travcost is 1 + surcharge */
+
+    cost -= rsch_travel_disc((INT)p->rschlvl);
+    return (cost < 1) ? 1 : cost;
+}
+
 /* ---------------------------------------------------------------------- *
  * do_move                                                                *
  *                                                                        *
- * Travel one tile by (dx, dy) for one Action Point, then redraw the new  *
+ * Travel one tile by (dx, dy) for the travel cost, then redraw the new   *
  * surroundings. Movement is blocked at the edge of the world. The map     *
  * redraw clears the screen, so no separate "you moved" line is printed -   *
  * it would only be erased by that clear (and would trip the page pause).   *
@@ -270,11 +311,7 @@ VOID EXPORT
 do_move(struct fracplyr *p, INT dx, INT dy)
 {
     INT nx, ny;
-    INT cost = wx_travcost();            /* storms and snow raise the toll   */
-
-    cost -= rsch_travel_disc((INT)p->rschlvl);  /* research cheapens travel  */
-    if (cost < 1)
-        cost = 1;                        /* a move always costs at least 1    */
+    INT cost = move_cost(p);
 
     if (p->actpts < cost) {
         prfmsg(NOAP);
@@ -311,12 +348,12 @@ do_search(struct fracplyr *p)
     INT gain;
     INT rtype, ramt;
 
-    if (p->actpts <= 0) {
+    if (p->actpts < srch_ap) {
         prfmsg(NOAP);
         return;
     }
 
-    p->actpts--;
+    p->actpts -= srch_ap;
     p->explores++;
     wld_get(p->posx, p->posy, &t);
 
@@ -324,7 +361,7 @@ do_search(struct fracplyr *p)
         t.flags |= TF_DISCOVERED;
         wld_put(&t);
         p->discoveries++;
-        gain = (INT)lngrnd(8, 20);
+        gain = disc_fame();
         p->fame += gain;
         tvar_set(TV_TERRAIN, wld_name(t.terrain));
         tvar_setn(TV_GAIN, gain);
@@ -382,10 +419,7 @@ step_move(struct fracplyr *p, INT dx, INT dy, struct travelsum *sum)
 {
     INT nx, ny, cost;
 
-    cost = wx_travcost();                     /* storms and snow raise it   */
-    cost -= rsch_travel_disc((INT)p->rschlvl);
-    if (cost < 1)
-        cost = 1;
+    cost = move_cost(p);
     if (p->actpts < cost)
         return 2;
 
@@ -408,16 +442,16 @@ step_search(struct fracplyr *p, struct travelsum *sum)
     struct fractile t;
     INT rtype, ramt;
 
-    if (p->actpts <= 0)
+    if (p->actpts < srch_ap)
         return 2;
 
-    p->actpts--;
-    sum->apused++;
+    p->actpts    -= srch_ap;
+    sum->apused  += srch_ap;
     p->explores++;
 
     wld_get(p->posx, p->posy, &t);
     if (!(t.flags & TF_DISCOVERED)) {
-        INT gain = (INT)lngrnd(8, 20);
+        INT gain = disc_fame();
         t.flags |= TF_DISCOVERED;
         wld_put(&t);
         p->discoveries++;
@@ -553,7 +587,7 @@ do_upgrade(struct fracplyr *p)
         p->res[i] -= cost[i];
 
     p->camplvl++;
-    gain = 10 * (INT)p->camplvl;          /* building projects earn Fame    */
+    gain = fame_bld * (INT)p->camplvl;    /* building projects earn Fame    */
     p->fame += gain;
     pl_write(p);
 
@@ -570,12 +604,10 @@ do_upgrade(struct fracplyr *p)
  * building projects from every player, newest first. This is the shared  *
  * "living world" view that makes the server feel inhabited.              *
  * ---------------------------------------------------------------------- */
-#define NEWSMAX 12               /* most recent entries shown in the news    */
-
 VOID EXPORT
 do_news(VOID)
 {
-    hist_news(NEWSMAX);
+    hist_news(news_max);
     show_weather();                      /* today's forecast under the news  */
 }
 
@@ -629,8 +661,8 @@ do_crew(struct fracplyr *p)
     }
     tvar_setn(TV_CREW,    total);
     tvar_setn(TV_CREWCAP, camp_workers(p->camplvl));
-    tvar_setn(TV_CWOOD,   WRK_COSTWOOD);
-    tvar_setn(TV_CFOOD,   WRK_COSTFOOD);
+    tvar_setn(TV_CWOOD,   wrk_costwood());
+    tvar_setn(TV_CFOOD,   wrk_costfood());
     prfmsg(CREWFT);
 }
 
@@ -662,8 +694,8 @@ do_hire(struct fracplyr *p, CHAR *sel)
         prfmsg(HIREFUL);
         break;
     case WHIRE_POOR:
-        tvar_setn(TV_CWOOD, WRK_COSTWOOD);
-        tvar_setn(TV_CFOOD, WRK_COSTFOOD);
+        tvar_setn(TV_CWOOD, wrk_costwood());
+        tvar_setn(TV_CFOOD, wrk_costfood());
         prfmsg(HIRECST);
         break;
     default:
@@ -860,10 +892,11 @@ do_raidlist(struct fracplyr *p)
         return;
     }
     prfmsg(RAIDHD);
-    n = pl_raidlist(p->userid, RAID_MINCAMP);
+    n = pl_raidlist(p->userid, raid_mincamp());
     if (n == 0)
         prfmsg(RAIDEMP);
     tvar_setn(TV_COST, raid_apcost());
+    tvar_set(TV_CAMP, camp_name(raid_mincamp()));
     prfmsg(RAIDFT);
 }
 
@@ -881,10 +914,12 @@ do_raid(struct fracplyr *p)
 
     raid_do(p, margv[1], &out);
     tvar_set(TV_TARGET, out.target);
+    tvar_set(TV_CAMP, camp_name(raid_mincamp()));
     switch (out.outcome) {
     case RD_WIN:
         pl_write(p);
         tvar_setn(TV_LOOT, out.loot);
+        tvar_setn(TV_GAIN, raid_fame());
         prfmsg(RAIDWIN);
         break;
     case RD_REPEL:
@@ -939,7 +974,7 @@ do_board(struct fracplyr *p)
     INT rank;
 
     prf("\x1b[2J\x1b[H\n  \x1b[1;36m== TOP EXPLORERS ==\x1b[0;37m\n\n");
-    rank = pl_leaderboard(p->userid, 15);
+    rank = pl_leaderboard(p->userid, brd_max);
     if (rank > 0)
         prf("\n  \x1b[0;37mYour Fame \x1b[1;33m%ld\x1b[0;37m   "
             "Rank \x1b[1;37m#%d\x1b[0;37m\n", p->fame, rank);

@@ -337,7 +337,7 @@ RAIDHD = T('RAIDHD',
 # RAIDFT - value from a named text variable
 RAIDFT = T('RAIDFT',
     rule() + '\r\n' + IND + GRY + 'Raid a rival with ' + WHT+RHB+' A name '+LHB + GRY + ' - it costs ' + YEL + tv('FRA_COST') + GRY + ' Action Points.' + RST + '\r\n'
-    + IND + GRY + 'Only camps built past a Tent can raid or be raided.' + RST + '\r\n' + RST,
+    + IND + GRY + 'Only camps of ' + WHT + tv('FRA_CAMP') + GRY + ' rank or better can raid or be raided.' + RST + '\r\n' + RST,
     'Raid footer')
 
 RAIDEMP = T('RAIDEMP',
@@ -346,7 +346,7 @@ RAIDEMP = T('RAIDEMP',
 
 # RAIDWIN - values from named text variables
 RAIDWIN = T('RAIDWIN',
-    IND + MAG+DS+MS+LS + ' RAID! ' + RST + GRY + 'You overrun ' + WHT + tv('FRA_TARGET') + GRY + ' and haul off ' + GRN + tv('FRA_LOOT') + GRY + ' resources.  ' + YEL + '(+5 Fame)' + RST + '\r\n',
+    IND + MAG+DS+MS+LS + ' RAID! ' + RST + GRY + 'You overrun ' + WHT + tv('FRA_TARGET') + GRY + ' and haul off ' + GRN + tv('FRA_LOOT') + GRY + ' resources.  ' + YEL + '(+' + tv('FRA_GAIN') + ' Fame)' + RST + '\r\n',
     'Raid succeeded')
 
 # RAIDREP - value from a named text variable
@@ -359,13 +359,13 @@ RAIDNOAP = T('RAIDNOAP',
     IND + RED+RHB + RST + ' ' + RED + 'A raid needs ' + WHT + tv('FRA_COST') + RED + ' Action Points, and you are short.' + RST + '\r\n',
     'Raid - not enough AP')
 
-# RAIDPROT - specifier: %s target
+# RAIDPROT / RAIDWEAK - the required camp tier is a named text variable
 RAIDPROT = T('RAIDPROT',
-    IND + RED+RHB + RST + ' ' + RED + 'That camp is only a Tent - too small to raid. Pick someone built up.' + RST + '\r\n',
+    IND + RED+RHB + RST + ' ' + RED + 'That camp has not built to ' + WHT + tv('FRA_CAMP') + RED + ' yet - too small to raid.' + RST + '\r\n',
     'Raid - target protected')
 
 RAIDWEAK = T('RAIDWEAK',
-    IND + RED+RHB + RST + ' ' + RED + 'Build your camp to a Cabin before you can raid.' + RST + '\r\n',
+    IND + RED+RHB + RST + ' ' + RED + 'Build your camp to ' + WHT + tv('FRA_CAMP') + RED + ' before you can raid.' + RST + '\r\n',
     'Raid - raider too weak')
 
 RAIDSELF = T('RAIDSELF',
@@ -586,6 +586,56 @@ out.append('')
 out.append('LEVEL6 {Fracture: help text}')
 out.append('')
 out.append(HELP.rstrip('\r\n'))
+out.append('')
+
+# --- config: gameplay tuning (appended after everything above so the ---
+# --- message numbers of all existing entries hold)                    ---
+out.append('LEVEL4 {Fracture: gameplay tuning}')
+out.append('')
+out.append(' The most Fame a first discovery can award. Charting a tile nobody')
+out.append(' has seen rolls between 40% of this and this.')
+out.append('')
+out.append('FAMEDISC {Greatest Fame for a first discovery? 20} N 1 500')
+out.append('')
+out.append(' Fame earned for raising the camp, per tier reached (building to')
+out.append(' tier 3 earns three times this).')
+out.append('')
+out.append('FAMEBLD {Fame per camp tier when building? 10} N 0 500')
+out.append('')
+out.append(' Fame the attacker earns for winning a raid.')
+out.append('')
+out.append('RADFAME {Fame for winning a raid? 5} N 0 100')
+out.append('')
+out.append(' Camp tier a player must have built before raiding - and a defender')
+out.append(' must have before being raidable: 0 Tent, 1 Cabin, 2 Outpost,')
+out.append(' 3 Settlement, 4 Fort, 5 Citadel. Players below it can neither raid')
+out.append(' nor be raided.')
+out.append('')
+out.append('RADMIN {Camp tier required to raid or be raided? 1} N 0 5')
+out.append('')
+out.append(' Base Action Points to travel one tile. Storms and snow add to it,')
+out.append(' and high research tiers take one off; a move always costs at')
+out.append(' least 1.')
+out.append('')
+out.append('TRAVAP {Action Points to travel one tile? 1} N 1 20')
+out.append('')
+out.append(' Action Points to search the current tile.')
+out.append('')
+out.append('SRCHAP {Action Points to search a tile? 1} N 1 20')
+out.append('')
+out.append(' What recruiting one worker costs, in Wood and in Food.')
+out.append('')
+out.append('WRKCWOOD {Wood cost to recruit a worker? 8} N 0 200')
+out.append('')
+out.append('WRKCFOOD {Food cost to recruit a worker? 4} N 0 200')
+out.append('')
+out.append(' How many chronicle entries the news view (H) shows, newest first.')
+out.append('')
+out.append('NEWSMAX {News entries shown? 12} N 1 20')
+out.append('')
+out.append(' How many explorers the Fame leaderboard (F) lists.')
+out.append('')
+out.append('BRDMAX {Rows on the Fame leaderboard? 15} N 3 20')
 out.append('')
 
 text = CRLF.join(out) + CRLF

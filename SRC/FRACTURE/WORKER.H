@@ -27,10 +27,6 @@
 #define WRK_CARRIER  4          /*   -> Water                               */
 #define WRK_COUNT    5
 
-                                /* recruit cost, per worker                 */
-#define WRK_COSTWOOD 8
-#define WRK_COSTFOOD 4
-
                                 /* wrk_hire results                         */
 #define WHIRE_OK    0
 #define WHIRE_FULL  1           /*   crew already at camp capacity          */
@@ -40,14 +36,17 @@
 
 /* Open the crew file (creating FRACWRK.DAT on first run) and latch the sysop  */
 /* settings: `enabled` master toggle, `perday` base units each worker produces */
-/* per day, `foodup` Food each worker eats per day.                            */
-VOID  wrk_open(GBOOL enabled, INT perday, INT foodup);
+/* per day, `foodup` Food each worker eats per day, and the Wood and Food cost  */
+/* of recruiting one worker.                                                   */
+VOID  wrk_open(GBOOL enabled, INT perday, INT foodup, INT costwood, INT costfood);
 VOID  wrk_close(VOID);
 
 GBOOL wrk_enabled(VOID);
 const CHAR *wrk_name(INT type);      /* worker display name                 */
 INT   wrk_resource(INT type);        /* RES_* this worker produces          */
 INT   wrk_perday(VOID);              /* configured base units per worker/day */
+INT   wrk_costwood(VOID);            /* configured Wood cost per recruit     */
+INT   wrk_costfood(VOID);            /* configured Food cost per recruit     */
 
 /* Fill count[WRK_COUNT] with a player's crew and return the crew total. A     */
 /* player with no crew record yields all zeros.                                */

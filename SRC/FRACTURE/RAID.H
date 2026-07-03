@@ -17,8 +17,6 @@
 #include "gcomm.h"
 #include "PLAYER.H"
 
-#define RAID_MINCAMP 1          /* need a Cabin (tier 1) to raid or be raided */
-
                                 /* raid_do outcomes                         */
 #define RD_WIN    0             /*   raid succeeded, loot taken             */
 #define RD_REPEL  1             /*   raid driven off by the defender        */
@@ -38,11 +36,14 @@ struct raidout {
 };
 
 /* Open the raid system, latching the sysop settings: master toggle, Action    */
-/* Point cost per raid, and the percent of each of the target's resources a     */
-/* successful raid carries off.                                                 */
-VOID  raid_open(GBOOL enabled, INT apcost, INT lootpct);
+/* Point cost per raid, the percent of each of the target's resources a         */
+/* successful raid carries off, the Fame a win earns, and the camp tier a        */
+/* player must have built to raid or be raided.                                  */
+VOID  raid_open(GBOOL enabled, INT apcost, INT lootpct, INT fame, INT mincamp);
 GBOOL raid_enabled(VOID);
 INT   raid_apcost(VOID);
+INT   raid_fame(VOID);
+INT   raid_mincamp(VOID);
 
 /* Resolve a raid by *atk against the player `targetid`. On a mountable raid it  */
 /* deducts the AP cost from *atk, decides the clash, moves loot into *atk        */

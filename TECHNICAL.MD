@@ -157,6 +157,16 @@ in the host's configuration editor:
 | `RADOPT` | enable player raiding | YES | B |
 | `RADCOST` | Action Points per raid | 5 | 0–200 |
 | `RADLOOT` | percent of resources looted on a winning raid | 25 | 0–100 |
+| `FAMEDISC` | greatest Fame for a first discovery (the roll's floor is 40% of it) | 20 | 1–500 |
+| `FAMEBLD` | Fame per camp tier reached when building | 10 | 0–500 |
+| `RADFAME` | Fame for winning a raid | 5 | 0–100 |
+| `RADMIN` | camp tier required to raid or be raided (0 Tent .. 5 Citadel) | 1 | 0–5 |
+| `TRAVAP` | base Action Points to travel one tile | 1 | 1–20 |
+| `SRCHAP` | Action Points to search a tile | 1 | 1–20 |
+| `WRKCWOOD` | Wood cost to recruit a worker | 8 | 0–200 |
+| `WRKCFOOD` | Food cost to recruit a worker | 4 | 0–200 |
+| `NEWSMAX` | chronicle entries the news view shows | 12 | 1–20 |
+| `BRDMAX` | rows on the Fame leaderboard | 15 | 3–20 |
 
 Setting `REGENPCT` to 0 freezes the world; each major system's on/off switch
 (`WXOPT`, `WRKOPT`, `MKTOPT`, `RSCHOPT`, `RADOPT`) removes it from play cleanly. New

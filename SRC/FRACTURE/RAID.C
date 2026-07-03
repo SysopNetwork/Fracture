@@ -21,18 +21,20 @@
 static GBOOL raidon;                 /* sysop master toggle                  */
 static INT   ap_cost;                /* Action Points per raid               */
 static INT   loot_pct;               /* percent of each resource looted      */
-
-#define RAID_FAME 5                  /* Fame for a successful raid           */
+static INT   fame_win;               /* Fame for a successful raid           */
+static INT   min_camp;               /* camp tier needed to raid / be raided */
 
 /* ---------------------------------------------------------------------- *
  * open / accessors                                                       *
  * ---------------------------------------------------------------------- */
 VOID EXPORT
-raid_open(GBOOL enabled, INT apcost, INT lootpct)
+raid_open(GBOOL enabled, INT apcost, INT lootpct, INT fame, INT mincamp)
 {
     raidon   = enabled;
     ap_cost  = apcost;
     loot_pct = lootpct;
+    fame_win = fame;
+    min_camp = mincamp;
 }
 
 GBOOL EXPORT
@@ -47,6 +49,18 @@ raid_apcost(VOID)
     return ap_cost;
 }
 
+INT EXPORT
+raid_fame(VOID)
+{
+    return fame_win;
+}
+
+INT EXPORT
+raid_mincamp(VOID)
+{
+    return min_camp;
+}
+
 /* ---------------------------------------------------------------------- *
  * raid_do                                                                *
  * ---------------------------------------------------------------------- */
@@ -59,12 +73,12 @@ raid_do(struct fracplyr *atk, const CHAR *targetid, struct raidout *out)
     setmem(out, sizeof(*out), 0);
 
     if (!raidon)                              { out->outcome = RD_OFF;   return; }
-    if ((INT)atk->camplvl < RAID_MINCAMP)     { out->outcome = RD_WEAK;  return; }
+    if ((INT)atk->camplvl < min_camp)         { out->outcome = RD_WEAK;  return; }
     if (sameas((CHAR *)targetid, atk->userid)){ out->outcome = RD_SELF;  return; }
     if (!pl_load_ci(targetid, &def))          { out->outcome = RD_NOTGT; return; }
 
     stzcpy(out->target, def.userid, UIDSIZ);
-    if ((INT)def.camplvl < RAID_MINCAMP)      { out->outcome = RD_PROT;  return; }
+    if ((INT)def.camplvl < min_camp)          { out->outcome = RD_PROT;  return; }
     if (atk->actpts < ap_cost)                { out->outcome = RD_NOAP;  return; }
 
     atk->actpts -= ap_cost;                   /* the raid is mounted        */
@@ -86,7 +100,7 @@ raid_do(struct fracplyr *atk, const CHAR *targetid, struct raidout *out)
             total += take;
         }
         out->loot = total;
-        atk->fame += RAID_FAME;
+        atk->fame += fame_win;
         out->outcome = RD_WIN;
     }
     else {

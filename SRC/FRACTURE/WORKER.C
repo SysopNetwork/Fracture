@@ -34,6 +34,8 @@ static DFAFILE *wrkdat;              /* open crew data file handle           */
 static GBOOL    wrkon;               /* sysop master toggle                  */
 static INT      prod_per;           /* base units per worker per day         */
 static INT      food_up;            /* Food eaten per worker per day          */
+static INT      cost_wood;          /* Wood cost to recruit one worker        */
+static INT      cost_food;          /* Food cost to recruit one worker        */
 
 /* worker display names, indexed by WRK_* */
 static const CHAR *wrknam[WRK_COUNT] = {
@@ -49,11 +51,13 @@ static const INT wrkres[WRK_COUNT] = {
  * wrk_open                                                               *
  * ---------------------------------------------------------------------- */
 VOID EXPORT
-wrk_open(GBOOL enabled, INT perday, INT foodup)
+wrk_open(GBOOL enabled, INT perday, INT foodup, INT costwood, INT costfood)
 {
-    wrkon    = enabled;
-    prod_per = perday;
-    food_up  = foodup;
+    wrkon     = enabled;
+    prod_per  = perday;
+    food_up   = foodup;
+    cost_wood = costwood;
+    cost_food = costfood;
 
     if (!isfile(WRKFIL)) {
         struct dfaSegSpec seg;       /* the user-id key segment              */
@@ -156,6 +160,18 @@ wrk_perday(VOID)
     return prod_per;
 }
 
+INT EXPORT
+wrk_costwood(VOID)
+{
+    return cost_wood;
+}
+
+INT EXPORT
+wrk_costfood(VOID)
+{
+    return cost_food;
+}
+
 /* ---------------------------------------------------------------------- *
  * wrk_counts                                                             *
  * ---------------------------------------------------------------------- */
@@ -193,11 +209,11 @@ wrk_hire(struct fracplyr *p, INT type)
 
     if (total >= camp_workers(p->camplvl))
         return WHIRE_FULL;
-    if (p->res[RES_WOOD] < WRK_COSTWOOD || p->res[RES_FOOD] < WRK_COSTFOOD)
+    if (p->res[RES_WOOD] < cost_wood || p->res[RES_FOOD] < cost_food)
         return WHIRE_POOR;
 
-    p->res[RES_WOOD] -= WRK_COSTWOOD;
-    p->res[RES_FOOD] -= WRK_COSTFOOD;
+    p->res[RES_WOOD] -= cost_wood;
+    p->res[RES_FOOD] -= cost_food;
     w.count[type]++;
     if (w.prodday == 0)
         w.prodday = (USHORT)today();   /* new crew: production starts tomorrow */

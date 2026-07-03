@@ -95,6 +95,14 @@ value is a named text variable).
   world.
 
 ### Added
+- Ten more sysop options, exposing balance values that were fixed in code:
+  Fame rewards (`FAMEDISC` for first discoveries, `FAMEBLD` per camp tier
+  built, `RADFAME` for a winning raid), action costs (`TRAVAP` per tile
+  travelled, `SRCHAP` per search), the worker recruit cost (`WRKCWOOD`,
+  `WRKCFOOD`), the camp tier required to raid or be raided (`RADMIN`), and
+  the sizes of the news view and the Fame leaderboard (`NEWSMAX`, `BRDMAX`).
+  The raid screens now name the required camp tier — and the raid-win Fame —
+  from the live settings instead of fixed text.
 - In-game sysop tools (`SYSOP.C`/`.H`): live administration gated by the BBS
   **SYSOP** key, reached from the main prompt with a hidden **!** command that is
   invisible to players. `! find <name>` shows a player's full record; `! set <name>

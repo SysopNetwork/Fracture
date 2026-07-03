@@ -89,5 +89,15 @@
 #define RAIDED    100
 #define APFREE    102
 #define HELP      104
+#define FAMEDISC  106
+#define FAMEBLD   107
+#define RADFAME   108
+#define RADMIN    109
+#define TRAVAP    110
+#define SRCHAP    111
+#define WRKCWOOD  112
+#define WRKCFOOD  113
+#define NEWSMAX   114
+#define BRDMAX    115
 
 #define QUIPN      45      /* last arrival quip (lngrnd upper bound) */
