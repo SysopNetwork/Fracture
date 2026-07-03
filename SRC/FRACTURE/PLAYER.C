@@ -14,6 +14,7 @@
 
 #define PLYRFIL "FRACTURE.DAT"       /* player data file                     */
 #define PLYRPGS 1024                 /* Btrieve page size (multiple of 512)  */
+#define PL_RAIDMAX 25                /* cap the raid list (bounds prfbuf use) */
 
 static DFAFILE *plyrdat;             /* open player data file handle         */
 
@@ -158,7 +159,9 @@ pl_raidlist(const CHAR *selfid, INT mincamp)
                     p.userid, (INT)p.camplvl, p.fame);
                 shown++;
             }
-        } while (dfaStepNX(&p));
+            /* stop once the list is full, so a big roster cannot overrun the  *
+             * prf output buffer (the news view caps itself the same way)      */
+        } while (shown < PL_RAIDMAX && dfaStepNX(&p));
     }
     dfaRstBlk();
     return shown;

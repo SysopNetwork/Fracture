@@ -544,7 +544,8 @@ trade_qty(const CHAR *s)
     if (s == NULL)
         return 0;
     while (*s >= '0' && *s <= '9') {
-        v = v * 10 + (*s - '0');
+        if (v < 100000000L)              /* clamp before LONG can overflow    */
+            v = v * 10 + (*s - '0');
         s++;
     }
     return v;
