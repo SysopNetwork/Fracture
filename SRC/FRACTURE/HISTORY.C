@@ -139,3 +139,24 @@ hist_news(INT max)
         prfmsg(NEWSNON);
     prfmsg(NEWSFTR);
 }
+
+/* ---------------------------------------------------------------------- *
+ * hist_clear                                                             *
+ *                                                                        *
+ * Delete every chronicle entry and restart the sequence, for the sysop   *
+ * "reset game" command. Re-fetch the lowest record each pass so the       *
+ * cursor is never left dangling on a just-deleted record.                 *
+ * ---------------------------------------------------------------------- */
+VOID EXPORT
+hist_clear(VOID)
+{
+    struct frachist h;
+
+    dfaSetBlk(histdat);
+    while (dfaStepLO(&h)) {
+        dfaAcqEQ(NULL, &h.seq, 0);
+        dfaDelete();
+    }
+    dfaRstBlk();
+    nextseq = 1;
+}

@@ -47,4 +47,7 @@ VOID hist_add(INT type, const CHAR *who, INT arg, INT x, INT y);
 /* The caller must have selected the module message block (setmbk).           */
 VOID hist_news(INT max);
 
+/* Erase the entire chronicle and restart numbering (sysop game reset).       */
+VOID hist_clear(VOID);
+
 #endif /* FRACTURE_HISTORY_H */

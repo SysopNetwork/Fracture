@@ -60,4 +60,9 @@ GBOOL pl_load_ci(const CHAR *userid, struct fracplyr *p);
 /* tier is at least `mincamp` - one per line, and return how many were shown.   */
 INT   pl_raidlist(const CHAR *selfid, INT mincamp);
 
+/* Sysop admin helpers. pl_wipeall deletes every player record (game reset);   */
+/* pl_ap_all sets the Action-Point pool of every player at once.               */
+VOID  pl_wipeall(VOID);
+VOID  pl_ap_all(INT ap);
+
 #endif /* FRACTURE_PLAYER_H */

@@ -119,6 +119,29 @@ wld_open(INT size)
 }
 
 /* ---------------------------------------------------------------------- *
+ * wld_reset                                                              *
+ *                                                                        *
+ * Throw away the whole map and generate a fresh one - the world half of  *
+ * a sysop game reset. Every tile is deleted (re-fetching the lowest each *
+ * pass so a just-deleted record never leaves the cursor dangling), then  *
+ * generate() re-fills the file with new terrain and re-charts the center.*
+ * ---------------------------------------------------------------------- */
+VOID EXPORT
+wld_reset(VOID)
+{
+    struct fractile t;
+
+    dfaSetBlk(wlddat);
+    while (dfaStepLO(&t)) {
+        dfaAcqEQ(NULL, &t.coord, 0);
+        dfaDelete();
+    }
+    dfaRstBlk();
+
+    generate();
+}
+
+/* ---------------------------------------------------------------------- *
  * wld_close                                                              *
  * ---------------------------------------------------------------------- */
 VOID EXPORT

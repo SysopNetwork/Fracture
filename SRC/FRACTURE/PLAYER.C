@@ -210,3 +210,57 @@ pl_delete(const CHAR *userid)
         dfaDelete();
     dfaRstBlk();
 }
+
+/* ---------------------------------------------------------------------- *
+ * pl_wipeall                                                            *
+ *                                                                        *
+ * Delete every player record - the destructive half of a sysop game     *
+ * reset. Re-fetch the lowest record each pass so the cursor is never     *
+ * left pointing at a record we just removed.                             *
+ * ---------------------------------------------------------------------- */
+VOID EXPORT
+pl_wipeall(VOID)
+{
+    struct fracplyr p;
+
+    dfaSetBlk(plyrdat);
+    while (dfaStepLO(&p)) {
+        dfaAcqEQ(NULL, p.userid, 0);
+        dfaDelete();
+    }
+    dfaRstBlk();
+}
+
+/* ---------------------------------------------------------------------- *
+ * pl_ap_all                                                             *
+ *                                                                        *
+ * Set every player's Action-Point pool to `ap` (sysop "give AP to all"). *
+ * ---------------------------------------------------------------------- */
+#define PL_ALLMAX 128                /* cap for a bulk pass (ample for a door) */
+
+VOID EXPORT
+pl_ap_all(INT ap)
+{
+    struct fracplyr p;
+    CHAR ids[PL_ALLMAX][UIDSIZ];
+    INT  n = 0, i;
+
+    /* Phase 1: collect user-ids with a read-only walk, so phase 2's keyed     *
+     * writes never modify the file mid-traversal (stepping + modifying is      *
+     * the pattern the world code deliberately avoids).                         */
+    dfaSetBlk(plyrdat);
+    if (dfaStepLO(&p)) {
+        do {
+            stzcpy(ids[n], p.userid, UIDSIZ);
+        } while (++n < PL_ALLMAX && dfaStepNX(&p));
+    }
+    dfaRstBlk();
+
+    /* Phase 2: fetch and rewrite each by key (the proven pl_write pattern).    */
+    for (i = 0; i < n; i++) {
+        if (pl_read(ids[i], &p)) {
+            p.actpts = ap;
+            pl_write(&p);
+        }
+    }
+}

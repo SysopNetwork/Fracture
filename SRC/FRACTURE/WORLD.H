@@ -39,6 +39,7 @@ struct fractile {               /* one map tile                             */
 VOID  wld_open(INT size);       /* open the world, creating+generating it   */
                                 /* at the given size on first run           */
 VOID  wld_close(VOID);
+VOID  wld_reset(VOID);          /* wipe & regenerate the map (sysop reset)  */
 INT   wld_size(VOID);           /* configured world dimension               */
 
 VOID  wld_get(INT x, INT y, struct fractile *t);  /* fetch a tile           */

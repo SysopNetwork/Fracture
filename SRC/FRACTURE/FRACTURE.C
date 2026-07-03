@@ -31,6 +31,7 @@
 #include "MARKET.H"
 #include "RESEARCH.H"
 #include "RAID.H"
+#include "SYSOP.H"
 
 /* ---- forward declarations -------------------------------------------- */
 GBOOL user_logon(VOID);              /* per-user logon supplemental routine  */
@@ -1030,6 +1031,12 @@ module_main(VOID)
                    me.res[RES_WOOD], me.res[RES_STONE], me.res[RES_METAL],
                    me.res[RES_FOOD], me.res[RES_WATER]);
             show_weather();                  /* today's forecast on status   */
+        }
+        else if (sameas(margv[0], "!")) {
+            if (sysop_allowed())             /* hidden: only holders of the  */
+                do_sysop(&me);               /* SYSOP key ever reach this     */
+            else
+                prfmsg(INVALID);
         }
         else {
             prfmsg(INVALID);
