@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Changed
+- The location/map screen and every command prompt gained consistent spacing: a
+  single blank line after the location header, after the legend, and before the
+  menu. The menu itself now carries the leading gap, so the separation is uniform
+  on every screen.
+- Raid targets (`A name`) now match case-insensitively, so a rival's name need only
+  be spelled right, not cased right (`A himmey` finds `Himmey`).
+- The status screen (`T`) and the how-to-play text now show the real configured
+  world size (`N x N`) instead of a hardcoded value.
+- A new player's camp/home tile is charted on first entry (and when an
+  out-of-bounds player is relocated home), so it is never shown as "unknown" —
+  previously visible after the world was grown past its original size.
 - The screens were widened to use the full 80-column display: banners, rules, and
   the menu tab bar now span ~74 columns (was 52), the tabs are spread out, and the
   status and camp screens gained a blank line above and below their fields. Message
@@ -33,6 +44,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   verifiable).
 
 ### Fixed
+- A sysop `! reset` could later crash the door with a Btrieve duplicate-key error
+  (status 5) on `FRACHIST.DAT`. The history file resumed its sequence counter from
+  the physically-last record, which stopped matching the highest sequence once the
+  reset began deleting entries, so a later insert reused an existing key. The next
+  sequence number is now derived from the true maximum key by scanning the file,
+  which is correct regardless of physical layout and self-heals an affected file on
+  the next open.
 - The host's output more-prompt (`(N)onstop, (Q)uit, or (C)ontinue?`) could
   interrupt the game's own full-screen redraws for users with a short screen-pause
   length, because the line counter carries across screen clears. The module now
@@ -54,6 +72,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   world.
 
 ### Added
+- In-game sysop tools (`SYSOP.C`/`.H`): live administration gated by the BBS
+  **SYSOP** key, reached from the main prompt with a hidden **!** command that is
+  invisible to players. `! find <name>` shows a player's full record; `! set <name>
+  <field> <value>` edits Fame, Action Points, resources, camp or research tier, or
+  position; `! ap <name|ALL> <n>` grants Action Points; `! wipe <name> YES` deletes
+  a player; `! reset CONFIRM` wipes every player, regenerates the world, and clears
+  the news. The two destructive commands require a literal `YES`/`CONFIRM` token,
+  and names match case-insensitively. Admin output uses `prf` only, so no
+  message-file entries were added. New data helpers `pl_wipeall`, `pl_ap_all`,
+  `pl_leaderboard`, `wld_reset`, and `hist_clear`. ADR 0014 records the design.
+- Fame leaderboard: **F** shows the top explorers by Fame, the caller marked with
+  their rank beneath. It reads the roster and sorts in memory, and costs no Action
+  Points. Listed in both menus (the compact bar also now surfaces the existing
+  **U** Upgrade command).
+- Batch travel: **`<dir> [R] [count]`** (e.g. `W R 3`) walks several tiles in one
+  direction, optionally searching each, stopping at the world edge or when Action
+  Points run out, then redrawing the map once with a one-line trip summary (tiles
+  charted, Fame, resources gathered, Action Points spent). A plain single step is
+  unchanged.
+- How-to-play screen: **?** now opens a one-page guide — the world, how Action
+  Points work, what each command does, and that Look, Status, Help, and the Board
+  cost no Action Points. (Previously `?` only reprinted the command list.)
 - Player raiding (`RAID.C`/`.H`): the first player-versus-player interaction.
   **A** lists raidable rivals (players who have built past a Tent, with their camp
   tier and Fame); **A name** raids one. The clash rolls each side's camp tier plus
