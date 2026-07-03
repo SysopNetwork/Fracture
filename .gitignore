@@ -33,6 +33,10 @@ secrets.*
 BBSTEST.LOCAL.INI
 # Smoke-test session captures (transient).
 BBSTEST.OUT.*
+# Test-harness scratch output and Python bytecode caches.
+raid.out
+__pycache__/
+*.pyc
 
 # --- Visual Studio / MSBuild ---
 .vs/

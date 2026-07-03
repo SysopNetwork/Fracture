@@ -182,37 +182,73 @@ def do_login(ses, userid, password):
 
 
 PAUSE_SEEN = []          # labels of screens where the (N)onstop prompt fired
+ESCAPES = []             # labels where the session fell out of Fracture to the BBS
+
+# The BBS TOP-menu selection prompt. If we ever see this while driving the game
+# the session has dropped out of the module - and a loose keystroke at this
+# menu (on this system 'C' opens Teleconference) is exactly what used to strand
+# the tests. Detect it and climb back in with 'F' rather than send a stray key.
+TOP_MARKERS = ("Make your selection", "to exit):")
 
 
-def _await_choose(ses, label, timeout=15):
+def _await_choose(ses, label, timeout=15, recover=False):
     """Wait for Fracture's 'Choose:' prompt. If the host's more-prompt fires
-    first, record it against `label` and answer 'C' to continue - so we both
-    detect the regression and keep the session moving."""
+    first, record it against `label` and answer 'C' to continue. With
+    recover=True, a drop back to the BBS TOP menu is detected and repaired by
+    re-entering Fracture (never sending a bare key at the menu) so a fallen-out
+    session can't wander into Teleconference and hang."""
+    reentries = 0
     while True:
-        hit = ses.expect(["Choose:", "(N)onstop", "Nonstop"], timeout=timeout,
-                         answer_pauses=False)
+        hit = ses.expect(["Choose:", "(N)onstop", "Nonstop", "ENTER to continue"],
+                         timeout=timeout, answer_pauses=False)
         if hit in ("(N)onstop", "Nonstop"):
             if label not in PAUSE_SEEN:
                 PAUSE_SEEN.append(label)
             ses.send("C")            # continue past the pause
             continue
-        return hit                   # "Choose:" or None (timeout)
+        if hit == "ENTER to continue":
+            # an async system broadcast (e.g. the periodic inter-BBS LORD
+            # tourney notice) threw a "(Press ENTER to continue)" over our
+            # screen. Clear it and keep waiting for the game prompt.
+            ses.send("")
+            continue
+        if hit == "Choose:":
+            return hit
+        # timed out: did we fall out of the module back to the BBS TOP menu?
+        if recover and reentries < 2 and any(m in ses.text[-200:]
+                                             for m in TOP_MARKERS):
+            if label not in ESCAPES:
+                ESCAPES.append(label)
+            reentries += 1
+            ses.drain(0.3)
+            ses.send("F")            # re-enter Fracture; no bare key at the menu
+            continue
+        return hit                   # None (genuine timeout / stuck elsewhere)
 
 
 def enter_fracture(ses):
     mark = len(ses.text)
-    ses.send("F")
-    if not _await_choose(ses, "entry", timeout=20):
-        raise RuntimeError("Fracture did not come up (no 'Choose:' prompt)")
-    ses.drain(1.0)
-    return ses.text[mark:]
+    for attempt in range(3):
+        # settle the menu first: a system broadcast can leave a "(Press ENTER
+        # to continue)" pause sitting on the TOP menu, and if our 'F' lands on
+        # that prompt it just dismisses it instead of entering the game.
+        ses.expect(TOP_MARKERS, timeout=8, answer_pauses=True)
+        ses.drain(0.4)
+        ses.send("F")
+        if _await_choose(ses, "entry", timeout=15) == "Choose:":
+            ses.drain(1.0)
+            return ses.text[mark:]
+        # 'F' didn't take (a broadcast likely ate it) - answer any pending
+        # pause and try again from the menu.
+        ses.send("")
+    raise RuntimeError("Fracture did not come up (no 'Choose:' prompt)")
 
 
 def run_cmd(ses, cmd, label):
     """Send one Fracture command, capture the screen it draws."""
     mark = len(ses.text)
     ses.send(cmd)
-    _await_choose(ses, label, timeout=15)
+    _await_choose(ses, label, timeout=15, recover=True)
     ses.drain(0.8)
     return ses.text[mark:]
 
