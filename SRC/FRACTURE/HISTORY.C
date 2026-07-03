@@ -26,6 +26,32 @@ static DFAFILE *histdat;             /* open chronicle data file handle      */
 static LONG     nextseq;             /* sequence number for the next entry   */
 
 /* ---------------------------------------------------------------------- *
+ * hist_maxseq (internal)                                                 *
+ *                                                                        *
+ * Return the highest sequence number in the file, or 0 if empty. This    *
+ * scans every record rather than trusting the physically-last one: once  *
+ * hist_clear can delete entries, physical order no longer matches key    *
+ * order, so the last physical record is not necessarily the highest seq  *
+ * (a wrong guess here would hand out a duplicate key on the next insert). *
+ * ---------------------------------------------------------------------- */
+static LONG
+hist_maxseq(VOID)
+{
+    struct frachist h;
+    LONG mx = 0;
+
+    dfaSetBlk(histdat);
+    if (dfaStepLO(&h)) {
+        do {
+            if (h.seq > mx)
+                mx = h.seq;
+        } while (dfaStepNX(&h));
+    }
+    dfaRstBlk();
+    return mx;
+}
+
+/* ---------------------------------------------------------------------- *
  * hist_open                                                              *
  *                                                                        *
  * Opens the chronicle, creating it on first run with a single integer    *
@@ -35,8 +61,6 @@ static LONG     nextseq;             /* sequence number for the next entry   */
 VOID EXPORT
 hist_open(VOID)
 {
-    struct frachist h;
-
     if (!isfile(HISTFIL)) {
         struct dfaSegSpec seg;       /* the sequence key segment             */
         struct dfaKeySpec key;       /* the single key built from it         */
@@ -58,12 +82,9 @@ hist_open(VOID)
 
     histdat = dfaOpen(HISTFIL, sizeof(struct frachist), NULL);
 
-    /* resume the sequence after the most recent (highest physical) entry */
-    nextseq = 1;
-    dfaSetBlk(histdat);
-    if (dfaStepHI(&h))
-        nextseq = h.seq + 1;
-    dfaRstBlk();
+    /* resume the sequence after the highest existing entry (by key, not by  *
+     * physical position - see hist_maxseq)                                   */
+    nextseq = hist_maxseq() + 1;
 }
 
 /* ---------------------------------------------------------------------- *
@@ -158,5 +179,7 @@ hist_clear(VOID)
         dfaDelete();
     }
     dfaRstBlk();
-    nextseq = 1;
+    /* restart at 1 if the file truly emptied; if any record survived, resume *
+     * past it so we never hand out a duplicate key (see hist_maxseq)          */
+    nextseq = hist_maxseq() + 1;
 }
