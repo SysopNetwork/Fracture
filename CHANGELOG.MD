@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Changed
+- Every dynamic value in the message file — names, amounts, costs, coordinates,
+  the weather — is now a **named text variable** (`FRA_FAME`, `FRA_TARGET`,
+  `FRA_WX`, ...) substituted by the host wherever it appears in the text,
+  replacing the positional `%s`/`%ld` printf tokens. Sysops can therefore
+  reword, reorder, repeat, or drop any value when editing message text without
+  breaking the module — previously the token order had to match the code's
+  argument list exactly. World size and the day's weather and season are
+  computed live, so they are always current wherever the text mentions them.
+  New source pair `TVARS.C`/`TVARS.H`; message names, types, and order are
+  unchanged. ADR 0015 records the design.
 - The main menu and the compact command bar were rebuilt as aligned grids. The
   full menu is now two columns (half its former height) and finally lists **U**
   Upgrade; the compact bar is a four-column grid with every tab starting at a

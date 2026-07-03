@@ -18,6 +18,7 @@
 #include "WORLD.H"
 #include "CAMP.H"
 #include "HISTORY.H"
+#include "TVARS.H"
 
 #define HISTFIL "FRACHIST.DAT"       /* chronicle data file                  */
 #define HISTPGS 1024                 /* Btrieve page size (multiple of 512)  */
@@ -142,13 +143,18 @@ hist_news(INT max)
     dfaSetBlk(histdat);
     if (dfaStepHI(&h)) {
         do {
+            tvar_set(TV_DATE, ncdate(h.day));
+            tvar_set(TV_WHO, h.who);
             switch (h.type) {
             case HE_DISCOVER:
-                prfmsg(NEWSDSC, ncdate(h.day), h.who,
-                       wld_name(h.arg), (INT)h.x, (INT)h.y);
+                tvar_set(TV_TERRAIN, wld_name(h.arg));
+                tvar_setn(TV_X, (LONG)h.x);
+                tvar_setn(TV_Y, (LONG)h.y);
+                prfmsg(NEWSDSC);
                 break;
             case HE_BUILD:
-                prfmsg(NEWSBLD, ncdate(h.day), h.who, camp_name(h.arg));
+                tvar_set(TV_CAMP, camp_name(h.arg));
+                prfmsg(NEWSBLD);
                 break;
             }
             shown++;

@@ -32,6 +32,7 @@
 #include "RESEARCH.H"
 #include "RAID.H"
 #include "SYSOP.H"
+#include "TVARS.H"
 
 /* ---- forward declarations -------------------------------------------- */
 GBOOL user_logon(VOID);              /* per-user logon supplemental routine  */
@@ -138,6 +139,7 @@ init__fracture(VOID)
     raid_ap      = numopt(RADCOST, 0, 200);
     raid_loot    = numopt(RADLOOT, 0, 100);
 
+    tvar_init();                     /* named text variables for the messages */
     pl_open();                       /* persistent players                   */
     wld_open(world_sz);              /* the map (generated on first run)     */
     hist_open();                     /* the shared server chronicle          */
@@ -230,7 +232,9 @@ do_look(struct fracplyr *p)
 
     wld_get(p->posx, p->posy, &here);
     name = (here.flags & TF_DISCOVERED) ? wld_name(here.terrain) : "unknown";
-    prfmsg(LOOKHD, (INT)p->posx, (INT)p->posy, name);
+    tvar_player(p);
+    tvar_set(TV_TERRAIN, name);
+    prfmsg(LOOKHD);
 
     prf("\n\n");
     for (vy = (INT)p->posy - VIEWH; vy <= (INT)p->posy + VIEWH; vy++) {
@@ -322,7 +326,9 @@ do_search(struct fracplyr *p)
         p->discoveries++;
         gain = (INT)lngrnd(8, 20);
         p->fame += gain;
-        prfmsg(NEWTILE, wld_name(t.terrain), gain);
+        tvar_set(TV_TERRAIN, wld_name(t.terrain));
+        tvar_setn(TV_GAIN, gain);
+        prfmsg(NEWTILE);
         /* the tile is shared, so this player is its first discoverer */
         hist_add(HE_DISCOVER, p->userid, t.terrain,
                  (INT)p->posx, (INT)p->posy);
@@ -337,8 +343,11 @@ do_search(struct fracplyr *p)
         p->res[rtype] += ramt;
         if (p->res[rtype] > cap)
             p->res[rtype] = cap;          /* camp storage is the cap        */
-        if (p->res[rtype] > before)
-            prfmsg(GATHER, (INT)(p->res[rtype] - before), res_name(rtype));
+        if (p->res[rtype] > before) {
+            tvar_setn(TV_AMT, p->res[rtype] - before);
+            tvar_set(TV_RES, res_name(rtype));
+            prfmsg(GATHER);
+        }
         else
             prfmsg(STORFUL);              /* already at capacity            */
     }
@@ -501,12 +510,16 @@ do_camp(struct fracplyr *p)
 {
     LONG cost[RES_COUNT];
 
-    prfmsg(CAMPVW, camp_name(p->camplvl), (INT)p->campx, (INT)p->campy,
-           camp_storage(p->camplvl));
+    tvar_player(p);
+    prfmsg(CAMPVW);
 
-    if (camp_cost(p->camplvl, cost))
-        prfmsg(CAMPUPC, camp_name(p->camplvl + 1),
-               cost[RES_WOOD], cost[RES_STONE], cost[RES_METAL]);
+    if (camp_cost(p->camplvl, cost)) {
+        tvar_set(TV_NEXT, camp_name(p->camplvl + 1));
+        tvar_setn(TV_CWOOD,  cost[RES_WOOD]);
+        tvar_setn(TV_CSTONE, cost[RES_STONE]);
+        tvar_setn(TV_CMETAL, cost[RES_METAL]);
+        prfmsg(CAMPUPC);
+    }
     else
         prfmsg(CAMPMAX);
 }
@@ -544,7 +557,9 @@ do_upgrade(struct fracplyr *p)
     p->fame += gain;
     pl_write(p);
 
-    prfmsg(CAMPUP, camp_name(p->camplvl), gain);
+    tvar_set(TV_CAMP, camp_name(p->camplvl));
+    tvar_setn(TV_GAIN, gain);
+    prfmsg(CAMPUP);
     hist_add(HE_BUILD, p->userid, p->camplvl, (INT)p->campx, (INT)p->campy);
 }
 
@@ -574,13 +589,11 @@ do_news(VOID)
 VOID EXPORT
 show_weather(VOID)
 {
-    INT wx;
-
     if (!wx_enabled())
         return;
 
-    wx = wx_weather();
-    prfmsg(WXLINE, wx_wname(wx), wx_wdesc(wx), wx_sname(wx_season()));
+    /* FRA_WX / FRA_WXDESC / FRA_SEASON are live variables - no fill needed */
+    prfmsg(WXLINE);
 }
 
 /* ---------------------------------------------------------------------- *
@@ -614,8 +627,11 @@ do_crew(struct fracplyr *p)
             i + 1, wrk_name(i), res_name(wrk_resource(i)),
             count[i], count[i] * per);
     }
-    prfmsg(CREWFT, total, camp_workers(p->camplvl),
-           WRK_COSTWOOD, WRK_COSTFOOD);
+    tvar_setn(TV_CREW,    total);
+    tvar_setn(TV_CREWCAP, camp_workers(p->camplvl));
+    tvar_setn(TV_CWOOD,   WRK_COSTWOOD);
+    tvar_setn(TV_CFOOD,   WRK_COSTFOOD);
+    prfmsg(CREWFT);
 }
 
 /* ---------------------------------------------------------------------- *
@@ -639,13 +655,16 @@ do_hire(struct fracplyr *p, CHAR *sel)
     switch (wrk_hire(p, type)) {
     case WHIRE_OK:
         pl_write(p);
-        prfmsg(HIRED, wrk_name(type));
+        tvar_set(TV_WORKER, wrk_name(type));
+        prfmsg(HIRED);
         break;
     case WHIRE_FULL:
         prfmsg(HIREFUL);
         break;
     case WHIRE_POOR:
-        prfmsg(HIRECST, WRK_COSTWOOD, WRK_COSTFOOD);
+        tvar_setn(TV_CWOOD, WRK_COSTWOOD);
+        tvar_setn(TV_CFOOD, WRK_COSTFOOD);
+        prfmsg(HIRECST);
         break;
     default:
         prfmsg(HIREBAD);
@@ -679,7 +698,8 @@ do_market(struct fracplyr *p)
             i + 1, res_name(i),
             market_sellprice(i), market_buyprice(i), p->res[i]);
     }
-    prfmsg(MARKFT, p->fame);
+    tvar_player(p);
+    prfmsg(MARKFT);
 }
 
 /* Parse a non-negative quantity from a command word (digits only).       */
@@ -730,7 +750,10 @@ do_trade(struct fracplyr *p)
         switch (rc) {
         case MKT_OK:
             pl_write(p);
-            prfmsg(SOLD, qty, res_name(restype), fame);
+            tvar_setn(TV_AMT, qty);
+            tvar_set(TV_RES, res_name(restype));
+            tvar_setn(TV_GAIN, fame);
+            prfmsg(SOLD);
             break;
         case MKT_NORES:  prfmsg(MKTNORE); break;
         default:         prfmsg(MKTBADR); break;
@@ -741,7 +764,10 @@ do_trade(struct fracplyr *p)
         switch (rc) {
         case MKT_OK:
             pl_write(p);
-            prfmsg(BOUGHT, got, res_name(restype), fame);
+            tvar_setn(TV_AMT, got);
+            tvar_set(TV_RES, res_name(restype));
+            tvar_setn(TV_GAIN, fame);
+            prfmsg(BOUGHT);
             break;
         case MKT_FULL:   prfmsg(MKTFULL); break;
         case MKT_NOFAME: prfmsg(MKTNOFA); break;
@@ -780,8 +806,12 @@ do_research(struct fracplyr *p)
             "gather \x1b[1;32m+%d%%\x1b[0;37m   travel \x1b[1;33m-%d AP\x1b[0;37m\r\n",
             mark, i, rsch_name(i), rsch_gather_pct(i), rsch_travel_disc(i));
     }
-    if (rsch_cost(lvl, cost))
-        prfmsg(RSCHFT, cost[RES_WOOD], cost[RES_STONE], cost[RES_METAL]);
+    if (rsch_cost(lvl, cost)) {
+        tvar_setn(TV_CWOOD,  cost[RES_WOOD]);
+        tvar_setn(TV_CSTONE, cost[RES_STONE]);
+        tvar_setn(TV_CMETAL, cost[RES_METAL]);
+        prfmsg(RSCHFT);
+    }
     else
         prfmsg(RSCHMAX);
 }
@@ -798,8 +828,9 @@ do_advance(struct fracplyr *p)
     switch (rsch_advance(p)) {
     case RADV_OK:
         pl_write(p);
-        prfmsg(RSCHUP, rsch_name((INT)p->rschlvl),
-               rsch_gather_pct((INT)p->rschlvl));
+        tvar_set(TV_TIER, rsch_name((INT)p->rschlvl));
+        tvar_setn(TV_PCT, rsch_gather_pct((INT)p->rschlvl));
+        prfmsg(RSCHUP);
         break;
     case RADV_MAX:
         prfmsg(RSCHMAX);
@@ -832,7 +863,8 @@ do_raidlist(struct fracplyr *p)
     n = pl_raidlist(p->userid, RAID_MINCAMP);
     if (n == 0)
         prfmsg(RAIDEMP);
-    prfmsg(RAIDFT, raid_apcost());
+    tvar_setn(TV_COST, raid_apcost());
+    prfmsg(RAIDFT);
 }
 
 /* ---------------------------------------------------------------------- *
@@ -848,20 +880,23 @@ do_raid(struct fracplyr *p)
     struct raidout out;
 
     raid_do(p, margv[1], &out);
+    tvar_set(TV_TARGET, out.target);
     switch (out.outcome) {
     case RD_WIN:
         pl_write(p);
-        prfmsg(RAIDWIN, out.target, out.loot);
+        tvar_setn(TV_LOOT, out.loot);
+        prfmsg(RAIDWIN);
         break;
     case RD_REPEL:
         pl_write(p);
-        prfmsg(RAIDREP, out.target);
+        prfmsg(RAIDREP);
         break;
     case RD_NOAP:
-        prfmsg(RAIDNOAP, raid_apcost());
+        tvar_setn(TV_COST, raid_apcost());
+        prfmsg(RAIDNOAP);
         break;
     case RD_PROT:
-        prfmsg(RAIDPROT, out.target);
+        prfmsg(RAIDPROT);
         break;
     case RD_WEAK:
         prfmsg(RAIDWEAK);
@@ -977,13 +1012,16 @@ module_main(VOID)
             INT   made   = wrk_daily(&me, &hungry);
             if (made > 0 || hungry)
                 pl_write(&me);
-            if (made > 0)
-                prfmsg(PRODSUM, made);
+            if (made > 0) {
+                tvar_setn(TV_AMT, made);
+                prfmsg(PRODSUM);
+            }
             if (hungry)
                 prfmsg(PRODHUN);
         }
         if (me.raidhit > 0) {                /* raided while away?          */
-            prfmsg(RAIDED, (INT)me.raidhit);
+            tvar_setn(TV_AMT, (LONG)me.raidhit);
+            prfmsg(RAIDED);
             me.raidhit = 0;
             pl_write(&me);
         }
@@ -993,7 +1031,8 @@ module_main(VOID)
 
     case MAINMEN:
         if (sameas(margv[0], "x")) {
-            prfmsg(EXITMSG, usaptr->userid);
+            tvar_set(TV_NAME, usaptr->userid);
+            prfmsg(EXITMSG);
             outprf(usrnum);
             rstmbk();
             frac_restore();          /* hand the user's screen-pause back      */
@@ -1004,7 +1043,8 @@ module_main(VOID)
              * (printing SHORTM here too would double the menu)               */
         }
         else if (sameas(margv[0], "?")) {
-            prfmsg(HELP, wld_size(), wld_size());  /* how-to-play; self-clears */
+            prfmsg(HELP);                /* how-to-play; self-clears.         *
+                                          * FRA_WORLD in the text is live     */
             break;
         }
         else if (sameas(margv[0], "n")) {
@@ -1059,12 +1099,8 @@ module_main(VOID)
                 do_raidlist(&me);            /* "A" lists raidable rivals   */
         }
         else if (sameas(margv[0], "t")) {
-            prfmsg(STATUS, me.userid, me.fame, me.actpts,
-                   me.explores, me.discoveries, (INT)me.posx, (INT)me.posy,
-                   wld_size(), wld_size(),
-                   camp_name(me.camplvl), camp_storage(me.camplvl),
-                   me.res[RES_WOOD], me.res[RES_STONE], me.res[RES_METAL],
-                   me.res[RES_FOOD], me.res[RES_WATER]);
+            tvar_player(&me);
+            prfmsg(STATUS);
             show_weather();                  /* today's forecast on status   */
         }
         else if (sameas(margv[0], "f")) {

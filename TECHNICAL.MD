@@ -56,8 +56,14 @@ module opens the compiled message file and emits entries by name:
 
 - `opnmsg()` opens the compiled `.MCV`; `setmbk()` / `rstmbk()` select and restore the
   active message block.
-- `prfmsg()` formats a message (with `printf`-style substitution) into the user's
-  output buffer; `outprf()` flushes it to the user.
+- `prfmsg()` formats a message into the user's output buffer; `outprf()` flushes
+  it to the user.
+- Dynamic values in message text are **named text variables** (`TVARS.C`,
+  ADR 0015): the module registers each value as `FRA_<name>` via
+  `register_textvar()`, and the host substitutes it wherever the name appears in
+  the text. The sysop can move, repeat, or drop these tokens freely when
+  rewording messages. The module fills a variable just before emitting a message
+  that uses it; world size and the day's weather/season are computed live.
 - Boolean sysop options are declared in the `.MSG` (the `... B` form) and read with
   `ynopt()`; this is the primary mechanism for sysop configuration toggles.
 

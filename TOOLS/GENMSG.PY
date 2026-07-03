@@ -39,6 +39,13 @@ def rule():
 def tab(keys, label):
     return YEL+RHB + RST + ' ' + WHT+keys+RST + ' ' + YEL+LHB + RST + GRY+label+RST
 
+# MBBS named text variable: the host replaces 0x01 <just> <width+32> NAME 0x01
+# with the value the module registered for NAME (see TVARS.C). just N=natural
+# length, L/R/C=pad/justify to width. Because the host finds the variable by
+# name, sysops may move or repeat these tokens anywhere in a message's text.
+def tv(name, just='N', width=1):
+    return '\x01' + just + chr(32 + width) + name + '\x01'
+
 def T(name, body, label):
     return name + ' {' + body + '} T ' + label + '\r\n'
 
@@ -93,7 +100,7 @@ def hkey(keys, body):
     return IND + YEL + keys.ljust(10) + RST + GRY + body + RST + '\r\n'
 _help  = banner('HOW TO PLAY', 'a living world, rebuilt each day')
 _help += '\r\n'
-_help += IND + GRY + 'Explore a ' + WHT + '%d x %d' + GRY + ' world a little each day. Every action costs ' + WHT + 'Action' + RST + '\r\n'
+_help += IND + GRY + 'Explore a ' + WHT + tv('FRA_WORLD') + ' x ' + tv('FRA_WORLD') + GRY + ' world a little each day. Every action costs ' + WHT + 'Action' + RST + '\r\n'
 _help += IND + WHT + 'Points' + GRY + ' (AP); when they run out, come back tomorrow. Overnight your AP' + RST + '\r\n'
 _help += IND + GRY + 'refill and the unexplored wilds regrow, so the world is never used up.' + RST + '\r\n'
 _help += '\r\n'
@@ -113,21 +120,21 @@ _help += '\r\n'
 _help += IND + DIM + 'Press ' + WHT + 'ENTER' + DIM + ' to return.' + RST
 HELP = T('HELP', _help, 'How to play')
 
-# STATUS - specifiers must stay: %s %ld %d %ld %ld %d %d %d %d %s %ld %ld %ld %ld %ld %ld
+# STATUS - values come from named text variables; sysops may reorder freely
 _st  = CLR + '\r\n' + sect('EXPLORER STATUS') + '\r\n' + rule() + '\r\n' + '\r\n'
-_st += IND + GRY + ' Explorer   : ' + WHT + '%s' + RST + '\r\n'
-_st += IND + GRY + ' Fame       : ' + YEL + '%ld' + RST + '\r\n'
-_st += IND + GRY + ' Action Pts : ' + GRN + '%d' + GRY + ' remaining today' + RST + '\r\n'
-_st += IND + GRY + ' Explored   : ' + WHT + '%ld' + GRY + '     Discovered : ' + WHT + '%ld' + RST + '\r\n'
-_st += IND + GRY + ' Location   : ' + WHT + '(%d, %d)' + GRY + '   World ' + WHT + '%d x %d' + RST + '\r\n'
-_st += IND + GRY + ' Camp       : ' + WHT + '%s' + GRY + '  (storage %ld each)' + RST + '\r\n'
+_st += IND + GRY + ' Explorer   : ' + WHT + tv('FRA_NAME') + RST + '\r\n'
+_st += IND + GRY + ' Fame       : ' + YEL + tv('FRA_FAME') + RST + '\r\n'
+_st += IND + GRY + ' Action Pts : ' + GRN + tv('FRA_AP') + GRY + ' remaining today' + RST + '\r\n'
+_st += IND + GRY + ' Explored   : ' + WHT + tv('FRA_EXPL') + GRY + '     Discovered : ' + WHT + tv('FRA_DISC') + RST + '\r\n'
+_st += IND + GRY + ' Location   : ' + WHT + '(' + tv('FRA_X') + ', ' + tv('FRA_Y') + ')' + GRY + '   World ' + WHT + tv('FRA_WORLD') + ' x ' + tv('FRA_WORLD') + RST + '\r\n'
+_st += IND + GRY + ' Camp       : ' + WHT + tv('FRA_CAMP') + GRY + '  (storage ' + tv('FRA_CAP') + ' each)' + RST + '\r\n'
 _st += '\r\n' + rule() + '\r\n'
-_st += IND + WHT + ' RESOURCES  ' + GRY + 'Wood ' + WHT + '%ld' + GRY + '  Stone ' + WHT + '%ld' + GRY + '  Metal ' + WHT + '%ld' + GRY + '  Food ' + WHT + '%ld' + GRY + '  Water ' + WHT + '%ld' + RST + '\r\n'
+_st += IND + WHT + ' RESOURCES  ' + GRY + 'Wood ' + WHT + tv('FRA_WOOD') + GRY + '  Stone ' + WHT + tv('FRA_STONE') + GRY + '  Metal ' + WHT + tv('FRA_METAL') + GRY + '  Food ' + WHT + tv('FRA_FOOD') + GRY + '  Water ' + WHT + tv('FRA_WATER') + RST + '\r\n'
 _st += rule() + '\r\n' + RST
 STATUS = T('STATUS', _st, 'Explorer status')
 
 EXITMSG = T('EXITMSG',
-    '\r\n' + IND + CYN+DS+MS+LS + RST + ' ' + GRY + 'Safe travels, ' + YEL + '%s' + GRY + '. The world will have changed when you return.' + RST + ' ' + CYN+LS+MS+DS + RST + '\r\n' + RST,
+    '\r\n' + IND + CYN+DS+MS+LS + RST + ' ' + GRY + 'Safe travels, ' + YEL + tv('FRA_NAME') + GRY + '. The world will have changed when you return.' + RST + ' ' + CYN+LS+MS+DS + RST + '\r\n' + RST,
     'Exit message')
 
 INVALID = T('INVALID',
@@ -149,7 +156,7 @@ EXPNADA = T('EXPNADA',
     'Search - nothing')
 
 NEWTILE = T('NEWTILE',
-    IND + MAG+DS+MS+LS + ' NEW GROUND! ' + RST + GRY + 'You chart unexplored ' + WHT + '%s' + GRY + '.  ' + YEL + '(+%d Fame)' + RST + '\r\n',
+    IND + MAG+DS+MS+LS + ' NEW GROUND! ' + RST + GRY + 'You chart unexplored ' + WHT + tv('FRA_TERRAIN') + GRY + '.  ' + YEL + '(+' + tv('FRA_GAIN') + ' Fame)' + RST + '\r\n',
     'Search - charted new tile')
 
 EDGE = T('EDGE',
@@ -159,7 +166,7 @@ EDGE = T('EDGE',
 MOVED = T('MOVED', IND + GRY + 'You travel %s.' + RST + '\r\n', 'Travel confirmation')
 
 LOOKHD = T('LOOKHD',
-    CLR + '\r\n' + IND + CYN+DS+MS+LS+FB + RST + ' ' + WHT + 'LOCATION (%d, %d)' + GRY + ' - ' + WHT + '%s' + RST + ' ' + CYN+FB+LS+MS+DS + RST,
+    CLR + '\r\n' + IND + CYN+DS+MS+LS+FB + RST + ' ' + WHT + 'LOCATION (' + tv('FRA_X') + ', ' + tv('FRA_Y') + ')' + GRY + ' - ' + WHT + tv('FRA_TERRAIN') + RST + ' ' + CYN+FB+LS+MS+DS + RST,
     'Look header')
 
 _leg  = RST + '\r\n' + rule() + '\r\n'
@@ -168,19 +175,19 @@ _leg += IND + GRY + ': desert  ~ swamp  w water  R ruins' + RST + '\r\n' + RST
 LEGEND = T('LEGEND', _leg, 'Map legend')
 
 GATHER = T('GATHER',
-    IND + GRY + RHB + ' You gather ' + GRN + '%d' + GRY + ' %s.' + RST + '\r\n',
+    IND + GRY + RHB + ' You gather ' + GRN + tv('FRA_AMT') + GRY + ' ' + tv('FRA_RES') + '.' + RST + '\r\n',
     'Resources gathered')
 
-# CAMPVW - specifiers: %s %d %d %ld
+# CAMPVW - values from named text variables
 _cv  = CLR + '\r\n' + sect('YOUR CAMP') + '\r\n' + rule() + '\r\n' + '\r\n'
-_cv += IND + GRY + ' Type     : ' + WHT + '%s' + RST + '\r\n'
-_cv += IND + GRY + ' Location : ' + WHT + '(%d, %d)' + RST + '\r\n'
-_cv += IND + GRY + ' Storage  : ' + WHT + '%ld' + GRY + ' of each resource' + RST + '\r\n'
+_cv += IND + GRY + ' Type     : ' + WHT + tv('FRA_CAMP') + RST + '\r\n'
+_cv += IND + GRY + ' Location : ' + WHT + '(' + tv('FRA_CAMPX') + ', ' + tv('FRA_CAMPY') + ')' + RST + '\r\n'
+_cv += IND + GRY + ' Storage  : ' + WHT + tv('FRA_CAP') + GRY + ' of each resource' + RST + '\r\n'
 _cv += '\r\n' + rule() + '\r\n' + RST
 CAMPVW = T('CAMPVW', _cv, 'Camp view')
 
 CAMPUPC = T('CAMPUPC',
-    IND + GRY + 'Upgrade to ' + WHT + '%s' + GRY + ' costs ' + YEL + '%ld' + GRY + ' Wood  ' + YEL + '%ld' + GRY + ' Stone  ' + YEL + '%ld' + GRY + ' Metal.' + RST + '\r\n' + IND + GRY + 'Press ' + YEL+RHB+' U '+LHB + GRY + ' to build it.' + RST + '\r\n' + RST,
+    IND + GRY + 'Upgrade to ' + WHT + tv('FRA_NEXT') + GRY + ' costs ' + YEL + tv('FRA_CWOOD') + GRY + ' Wood  ' + YEL + tv('FRA_CSTONE') + GRY + ' Stone  ' + YEL + tv('FRA_CMETAL') + GRY + ' Metal.' + RST + '\r\n' + IND + GRY + 'Press ' + YEL+RHB+' U '+LHB + GRY + ' to build it.' + RST + '\r\n' + RST,
     'Camp upgrade cost')
 
 CAMPMAX = T('CAMPMAX',
@@ -188,7 +195,7 @@ CAMPMAX = T('CAMPMAX',
     'Camp at max')
 
 CAMPUP = T('CAMPUP',
-    IND + MAG+DS+MS+LS + ' CAMP UPGRADED! ' + RST + GRY + 'Your camp is now a ' + WHT + '%s' + GRY + '.  ' + YEL + '(+%d Fame)' + RST + '\r\n',
+    IND + MAG+DS+MS+LS + ' CAMP UPGRADED! ' + RST + GRY + 'Your camp is now a ' + WHT + tv('FRA_CAMP') + GRY + '.  ' + YEL + '(+' + tv('FRA_GAIN') + ' Fame)' + RST + '\r\n',
     'Camp upgraded')
 
 CANTAFF = T('CANTAFF',
@@ -203,14 +210,14 @@ NEWSHDR = T('NEWSHDR',
     banner('THE FRACTURE CHRONICLE', 'the shared story of this world') + '\r\n' + RST,
     'News header')
 
-# NEWSDSC - specifiers: %s %s %s %d %d
+# NEWSDSC - values from named text variables
 NEWSDSC = T('NEWSDSC',
-    IND + CYN+RHB + RST + ' ' + DIM + '%s' + RST + '  ' + WHT + '%s' + GRY + ' charted ' + MAG + '%s' + GRY + ' at (%d, %d)' + RST + '\r\n',
+    IND + CYN+RHB + RST + ' ' + DIM + tv('FRA_DATE') + RST + '  ' + WHT + tv('FRA_WHO') + GRY + ' charted ' + MAG + tv('FRA_TERRAIN') + GRY + ' at (' + tv('FRA_X') + ', ' + tv('FRA_Y') + ')' + RST + '\r\n',
     'News - discovery')
 
-# NEWSBLD - specifiers: %s %s %s
+# NEWSBLD - values from named text variables
 NEWSBLD = T('NEWSBLD',
-    IND + CYN+RHB + RST + ' ' + DIM + '%s' + RST + '  ' + WHT + '%s' + GRY + ' built a ' + YEL + '%s' + RST + '\r\n',
+    IND + CYN+RHB + RST + ' ' + DIM + tv('FRA_DATE') + RST + '  ' + WHT + tv('FRA_WHO') + GRY + ' built a ' + YEL + tv('FRA_CAMP') + RST + '\r\n',
     'News - building')
 
 NEWSNON = T('NEWSNON',
@@ -219,9 +226,9 @@ NEWSNON = T('NEWSNON',
 
 NEWSFTR = T('NEWSFTR', rule() + '\r\n' + RST, 'News footer')
 
-# WXLINE - specifiers: %s %s %s  (weather name, flavor, season)
+# WXLINE - FRA_WX / FRA_WXDESC / FRA_SEASON are live: always today's values
 WXLINE = T('WXLINE',
-    IND + CYN+LS+MS+DS+FB + RST + ' ' + WHT + 'Weather ' + YEL + '%s' + GRY + ' - %s' + WHT + '   Season ' + YEL + '%s' + RST + '\r\n' + RST,
+    IND + CYN+LS+MS+DS+FB + RST + ' ' + WHT + 'Weather ' + YEL + tv('FRA_WX') + GRY + ' - ' + tv('FRA_WXDESC') + WHT + '   Season ' + YEL + tv('FRA_SEASON') + RST + '\r\n' + RST,
     'Weather & season line')
 
 # --- workers / production ---
@@ -229,32 +236,32 @@ CREWHD = T('CREWHD',
     CLR + '\r\n' + sect('YOUR CREW') + '\r\n' + rule() + '\r\n' + RST,
     'Crew screen header')
 
-# CREWFT - specifiers: %d used, %d cap, %d wood cost, %d food cost
+# CREWFT - values from named text variables
 CREWFT = T('CREWFT',
-    rule() + '\r\n' + IND + YEL + '%d' + GRY + ' of ' + YEL + '%d' + GRY + ' crew slots filled.' + RST + '\r\n'
-    + IND + GRY + 'Recruit with ' + WHT+RHB+' P n '+LHB + GRY + ' (n = 1-5).  Each costs ' + YEL + '%d' + GRY + ' Wood, ' + YEL + '%d' + GRY + ' Food.' + RST + '\r\n' + RST,
+    rule() + '\r\n' + IND + YEL + tv('FRA_CREW') + GRY + ' of ' + YEL + tv('FRA_CREWCAP') + GRY + ' crew slots filled.' + RST + '\r\n'
+    + IND + GRY + 'Recruit with ' + WHT+RHB+' P n '+LHB + GRY + ' (n = 1-5).  Each costs ' + YEL + tv('FRA_CWOOD') + GRY + ' Wood, ' + YEL + tv('FRA_CFOOD') + GRY + ' Food.' + RST + '\r\n' + RST,
     'Crew footer')
 
 HIRED = T('HIRED',
-    IND + MAG+DS+MS+LS + RST + ' ' + GRY + 'You take on a ' + WHT + '%s' + GRY + ' - welcome to the crew.' + RST + '\r\n',
+    IND + MAG+DS+MS+LS + RST + ' ' + GRY + 'You take on a ' + WHT + tv('FRA_WORKER') + GRY + ' - welcome to the crew.' + RST + '\r\n',
     'Recruited a worker')
 
 HIREFUL = T('HIREFUL',
     IND + RED+RHB + RST + ' ' + RED + 'Your camp cannot house any more workers - build it up first.' + RST + '\r\n',
     'Crew at capacity')
 
-# HIRECST - specifiers: %d wood cost, %d food cost
+# HIRECST - values from named text variables
 HIRECST = T('HIRECST',
-    IND + RED+RHB + RST + ' ' + RED + 'Not enough resources - a worker costs ' + WHT + '%d' + RED + ' Wood and ' + WHT + '%d' + RED + ' Food.' + RST + '\r\n',
+    IND + RED+RHB + RST + ' ' + RED + 'Not enough resources - a worker costs ' + WHT + tv('FRA_CWOOD') + RED + ' Wood and ' + WHT + tv('FRA_CFOOD') + RED + ' Food.' + RST + '\r\n',
     'Cannot afford worker')
 
 HIREBAD = T('HIREBAD',
     IND + RED+RHB + RST + ' ' + RED + 'That is not a worker to hire. Use ' + WHT + 'P 1' + RED + ' through ' + WHT + 'P 5' + RED + '.' + RST + '\r\n',
     'Invalid worker selection')
 
-# PRODSUM - specifier: %d total gained
+# PRODSUM - value from a named text variable
 PRODSUM = T('PRODSUM',
-    IND + GRN+DS+MS+LS + RST + ' ' + GRY + 'While you were away your crew stocked ' + GRN + '%d' + GRY + ' resource(s).' + RST + '\r\n',
+    IND + GRN+DS+MS+LS + RST + ' ' + GRY + 'While you were away your crew stocked ' + GRN + tv('FRA_AMT') + GRY + ' resource(s).' + RST + '\r\n',
     'Production summary')
 
 PRODHUN = T('PRODHUN',
@@ -266,20 +273,20 @@ MARKHD = T('MARKHD',
     CLR + '\r\n' + sect('TRADING POST') + '\r\n' + rule() + '\r\n' + RST,
     'Market screen header')
 
-# MARKFT - specifier: %ld (player's Fame)
+# MARKFT - value from a named text variable
 MARKFT = T('MARKFT',
-    rule() + '\r\n' + IND + GRY + 'Your Fame: ' + YEL + '%ld' + RST + '\r\n'
+    rule() + '\r\n' + IND + GRY + 'Your Fame: ' + YEL + tv('FRA_FAME') + RST + '\r\n'
     + IND + GRY + 'Sell with ' + WHT+RHB+' M S n q '+LHB + GRY + '   Buy with ' + WHT+RHB+' M B n q '+LHB + GRY + '   (n = 1-5, q = amount)' + RST + '\r\n' + RST,
     'Market footer')
 
-# SOLD - specifiers: %ld qty, %s resource, %ld fame
+# SOLD - values from named text variables
 SOLD = T('SOLD',
-    IND + GRN+DS+MS+LS + RST + ' ' + GRY + 'Sold ' + WHT + '%ld' + GRY + ' %s for ' + YEL + '+%ld Fame' + GRY + '.' + RST + '\r\n',
+    IND + GRN+DS+MS+LS + RST + ' ' + GRY + 'Sold ' + WHT + tv('FRA_AMT') + GRY + ' ' + tv('FRA_RES') + ' for ' + YEL + '+' + tv('FRA_GAIN') + ' Fame' + GRY + '.' + RST + '\r\n',
     'Sold at market')
 
-# BOUGHT - specifiers: %ld qty, %s resource, %ld fame
+# BOUGHT - values from named text variables
 BOUGHT = T('BOUGHT',
-    IND + MAG+DS+MS+LS + RST + ' ' + GRY + 'Bought ' + WHT + '%ld' + GRY + ' %s for ' + YEL + '-%ld Fame' + GRY + '.' + RST + '\r\n',
+    IND + MAG+DS+MS+LS + RST + ' ' + GRY + 'Bought ' + WHT + tv('FRA_AMT') + GRY + ' ' + tv('FRA_RES') + ' for ' + YEL + '-' + tv('FRA_GAIN') + ' Fame' + GRY + '.' + RST + '\r\n',
     'Bought at market')
 
 MKTFULL = T('MKTFULL',
@@ -303,15 +310,15 @@ RSCHHD = T('RSCHHD',
     CLR + '\r\n' + sect('RESEARCH BENCH') + '\r\n' + rule() + '\r\n' + RST,
     'Research screen header')
 
-# RSCHFT - specifiers: %ld Wood, %ld Stone, %ld Metal (next tier cost)
+# RSCHFT - values from named text variables
 RSCHFT = T('RSCHFT',
-    rule() + '\r\n' + IND + GRY + 'Next tier costs ' + YEL + '%ld' + GRY + ' Wood  ' + YEL + '%ld' + GRY + ' Stone  ' + YEL + '%ld' + GRY + ' Metal.' + RST + '\r\n'
+    rule() + '\r\n' + IND + GRY + 'Next tier costs ' + YEL + tv('FRA_CWOOD') + GRY + ' Wood  ' + YEL + tv('FRA_CSTONE') + GRY + ' Stone  ' + YEL + tv('FRA_CMETAL') + GRY + ' Metal.' + RST + '\r\n'
     + IND + GRY + 'Research it with ' + WHT+RHB+' K R '+LHB + RST + '\r\n' + RST,
     'Research footer')
 
-# RSCHUP - specifiers: %s tier name, %d gather pct
+# RSCHUP - values from named text variables (%% stays: a literal percent sign)
 RSCHUP = T('RSCHUP',
-    IND + MAG+DS+MS+LS + ' RESEARCHED! ' + RST + GRY + 'You reach ' + WHT + '%s' + GRY + '.  Gather bonus now ' + GRN + '+%d%%' + GRY + '.' + RST + '\r\n',
+    IND + MAG+DS+MS+LS + ' RESEARCHED! ' + RST + GRY + 'You reach ' + WHT + tv('FRA_TIER') + GRY + '.  Gather bonus now ' + GRN + '+' + tv('FRA_PCT') + '%%' + GRY + '.' + RST + '\r\n',
     'Research advanced')
 
 RSCHMAX = T('RSCHMAX',
@@ -327,9 +334,9 @@ RAIDHD = T('RAIDHD',
     CLR + '\r\n' + sect('RAID A RIVAL') + '\r\n' + rule() + '\r\n' + RST,
     'Raid screen header')
 
-# RAIDFT - specifier: %d (Action Point cost)
+# RAIDFT - value from a named text variable
 RAIDFT = T('RAIDFT',
-    rule() + '\r\n' + IND + GRY + 'Raid a rival with ' + WHT+RHB+' A name '+LHB + GRY + ' - it costs ' + YEL + '%d' + GRY + ' Action Points.' + RST + '\r\n'
+    rule() + '\r\n' + IND + GRY + 'Raid a rival with ' + WHT+RHB+' A name '+LHB + GRY + ' - it costs ' + YEL + tv('FRA_COST') + GRY + ' Action Points.' + RST + '\r\n'
     + IND + GRY + 'Only camps built past a Tent can raid or be raided.' + RST + '\r\n' + RST,
     'Raid footer')
 
@@ -337,19 +344,19 @@ RAIDEMP = T('RAIDEMP',
     IND + YEL + 'No rivals have built a camp worth raiding yet.' + RST + '\r\n',
     'Raid - no targets')
 
-# RAIDWIN - specifiers: %s target, %ld loot
+# RAIDWIN - values from named text variables
 RAIDWIN = T('RAIDWIN',
-    IND + MAG+DS+MS+LS + ' RAID! ' + RST + GRY + 'You overrun ' + WHT + '%s' + GRY + ' and haul off ' + GRN + '%ld' + GRY + ' resources.  ' + YEL + '(+5 Fame)' + RST + '\r\n',
+    IND + MAG+DS+MS+LS + ' RAID! ' + RST + GRY + 'You overrun ' + WHT + tv('FRA_TARGET') + GRY + ' and haul off ' + GRN + tv('FRA_LOOT') + GRY + ' resources.  ' + YEL + '(+5 Fame)' + RST + '\r\n',
     'Raid succeeded')
 
-# RAIDREP - specifier: %s target
+# RAIDREP - value from a named text variable
 RAIDREP = T('RAIDREP',
-    IND + RED+DS+MS+LS + RST + ' ' + GRY + 'The camp of ' + WHT + '%s' + GRY + ' holds - your raid is driven off.' + RST + '\r\n',
+    IND + RED+DS+MS+LS + RST + ' ' + GRY + 'The camp of ' + WHT + tv('FRA_TARGET') + GRY + ' holds - your raid is driven off.' + RST + '\r\n',
     'Raid repelled')
 
-# RAIDNOAP - specifier: %d Action Points needed
+# RAIDNOAP - value from a named text variable
 RAIDNOAP = T('RAIDNOAP',
-    IND + RED+RHB + RST + ' ' + RED + 'A raid needs ' + WHT + '%d' + RED + ' Action Points, and you are short.' + RST + '\r\n',
+    IND + RED+RHB + RST + ' ' + RED + 'A raid needs ' + WHT + tv('FRA_COST') + RED + ' Action Points, and you are short.' + RST + '\r\n',
     'Raid - not enough AP')
 
 # RAIDPROT - specifier: %s target
@@ -369,9 +376,9 @@ RAIDBAD = T('RAIDBAD',
     IND + RED+RHB + RST + ' ' + RED + 'No such rival. Check the name and try ' + WHT + 'A name' + RED + ' again.' + RST + '\r\n',
     'Raid - no such target')
 
-# RAIDED - specifier: %d times raided
+# RAIDED - value from a named text variable
 RAIDED = T('RAIDED',
-    IND + RED+DS+MS+LS + ' RAIDED! ' + RST + GRY + 'While you were away your camp was raided ' + WHT + '%d' + GRY + ' time(s).' + RST + '\r\n' + RST,
+    IND + RED+DS+MS+LS + ' RAIDED! ' + RST + GRY + 'While you were away your camp was raided ' + WHT + tv('FRA_AMT') + GRY + ' time(s).' + RST + '\r\n' + RST,
     'You were raided')
 
 # --- arrival quips (restyled, keep [2J and one per entry) ---

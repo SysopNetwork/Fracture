@@ -115,6 +115,7 @@
     <ClInclude Include="RESEARCH.H" />
     <ClInclude Include="RAID.H" />
     <ClInclude Include="SYSOP.H" />
+    <ClInclude Include="TVARS.H" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FRACTURE.C" />
@@ -129,6 +130,7 @@
     <ClCompile Include="RESEARCH.C" />
     <ClCompile Include="RAID.C" />
     <ClCompile Include="SYSOP.C" />
+    <ClCompile Include="TVARS.C" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="FRACTURE.rc" />
