@@ -227,7 +227,7 @@ do_look(struct fracplyr *p)
     name = (here.flags & TF_DISCOVERED) ? wld_name(here.terrain) : "unknown";
     prfmsg(LOOKHD, (INT)p->posx, (INT)p->posy, name);
 
-    prf("\r\n");
+    prf("\n");
     for (vy = (INT)p->posy - VIEWH; vy <= (INT)p->posy + VIEWH; vy++) {
         i = 0;
         for (vx = (INT)p->posx - VIEWW; vx <= (INT)p->posx + VIEWW; vx++) {
@@ -244,7 +244,7 @@ do_look(struct fracplyr *p)
             row[i++] = ' ';
         }
         row[i] = '\0';
-        prf("      %s\r\n", row);
+        prf("      %s\n", row);
     }
     prfmsg(LEGEND);
 }
