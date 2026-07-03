@@ -151,7 +151,7 @@ init__fracture(VOID)
 
     /* summary <= 32 chars, detail <= 63 - both show on the audit trail     */
     shocst("Fracture's here. Act impressed.",
-           "Fracture v1.1.0 just joined the chat! Hold my juicebox.");
+           "Fracture v1.0.0 just joined the chat! Hold my juicebox.");
 }
 
 /* ---------------------------------------------------------------------- *

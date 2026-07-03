@@ -5,15 +5,18 @@ All notable changes to Fracture are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [1.1.0] - 2026-07-03
+## [1.0.0] - 2026-07-03
 
-Freely editable message text and cleaner menus: every dynamic value in the
-message file is now a named text variable the sysop can move at will, and both
-menus were rebuilt as aligned grids.
+First release: the complete core game — a persistent tile world with daily
+midnight evolution, exploration and first discoveries, camp building, resources,
+workers and passive production, weather and seasons, a research track, a trading
+post, player raiding, a server chronicle with daily news, a Fame leaderboard,
+in-game sysop tools, and a freely sysop-editable message file (every dynamic
+value is a named text variable).
 
 ### Changed
 - Every dynamic value in the message file — names, amounts, costs, coordinates,
-  the weather — is now a **named text variable** (`FRA_FAME`, `FRA_TARGET`,
+  the weather — is a **named text variable** (`FRA_FAME`, `FRA_TARGET`,
   `FRA_WX`, ...) substituted by the host wherever it appears in the text,
   replacing the positional `%s`/`%ld` printf tokens. Sysops can therefore
   reword, reorder, repeat, or drop any value when editing message text without
@@ -23,22 +26,11 @@ menus were rebuilt as aligned grids.
   New source pair `TVARS.C`/`TVARS.H`; message names, types, and order are
   unchanged. ADR 0015 records the design.
 - The main menu and the compact command bar were rebuilt as aligned grids. The
-  full menu is now two columns (half its former height) and finally lists **U**
+  full menu is now two columns (half its former height) and lists **U**
   Upgrade; the compact bar is a four-column grid with every tab starting at a
   fixed column, its rows themed — world, camp, progress/rivals, then help/exit —
   instead of the old ragged 4/4/4/2 wrap that left Board and Upgrade dangling.
-  Message names, types, and order were preserved, so the numbering is unchanged
-  and no rebuild is required.
-
-## [1.0.0] - 2026-07-03
-
-First release: the complete core game — a persistent tile world with daily
-midnight evolution, exploration and first discoveries, camp building, resources,
-workers and passive production, weather and seasons, a research track, a trading
-post, player raiding, a server chronicle with daily news, a Fame leaderboard, and
-in-game sysop tools.
-
-### Changed
+  Message names, types, and order were preserved, so the numbering is unchanged.
 - The location/map screen and every command prompt gained consistent spacing: a
   single blank line after the location header, after the legend, and before the
   menu. The menu itself now carries the leading gap, so the separation is uniform
