@@ -15,6 +15,7 @@
 #define PLYRFIL "FRACTURE.DAT"       /* player data file                     */
 #define PLYRPGS 1024                 /* Btrieve page size (multiple of 512)  */
 #define PL_RAIDMAX 25                /* cap the raid list (bounds prfbuf use) */
+#define PL_ALLMAX 128                /* cap for a bulk/board pass (ample)     */
 
 static DFAFILE *plyrdat;             /* open player data file handle         */
 
@@ -198,6 +199,60 @@ pl_raidlist(const CHAR *selfid, INT mincamp)
 }
 
 /* ---------------------------------------------------------------------- *
+ * pl_leaderboard                                                        *
+ *                                                                        *
+ * Print the highest-Fame players, marking the caller, and return the     *
+ * caller's own rank. Records are read into a lean local array (just the   *
+ * fields the board shows) and insertion-sorted by Fame; the roster is     *
+ * small so an in-memory sort is simplest.                                *
+ * ---------------------------------------------------------------------- */
+INT EXPORT
+pl_leaderboard(const CHAR *selfid, INT max)
+{
+    struct lbent { CHAR uid[UIDSIZ]; LONG fame; UCHAR camp; };
+    struct lbent b[PL_ALLMAX], tmp;
+    struct fracplyr p;
+    INT n = 0, i, j, selfrank = 0;
+
+    dfaSetBlk(plyrdat);
+    if (dfaStepLO(&p)) {
+        do {
+            stzcpy(b[n].uid, p.userid, UIDSIZ);
+            b[n].fame = p.fame;
+            b[n].camp = p.camplvl;
+        } while (++n < PL_ALLMAX && dfaStepNX(&p));
+    }
+    dfaRstBlk();
+
+    for (i = 1; i < n; i++) {             /* insertion sort, Fame descending    */
+        tmp = b[i];
+        j = i - 1;
+        while (j >= 0 && b[j].fame < tmp.fame) {
+            b[j + 1] = b[j];
+            j--;
+        }
+        b[j + 1] = tmp;
+    }
+
+    for (i = 0; i < n; i++)               /* find the caller's rank, even off-list */
+        if (sameas(b[i].uid, (CHAR *)selfid)) {
+            selfrank = i + 1;
+            break;
+        }
+
+    for (i = 0; i < n && i < max; i++) {
+        if (sameas(b[i].uid, (CHAR *)selfid))
+            prf("  \x1b[1;33m%2d. %-20s Fame %ld   camp %d   <- you\x1b[0;37m\n",
+                i + 1, b[i].uid, b[i].fame, (INT)b[i].camp);
+        else
+            prf("  \x1b[1;37m%2d.\x1b[0;37m %-20s Fame \x1b[1;33m%ld\x1b[0;37m"
+                "   camp \x1b[1;37m%d\x1b[0;37m\n",
+                i + 1, b[i].uid, b[i].fame, (INT)b[i].camp);
+    }
+    return selfrank;
+}
+
+/* ---------------------------------------------------------------------- *
  * pl_delete                                                              *
  *                                                                        *
  * Removes a player's record (called when the BBS account is deleted).    *
@@ -236,8 +291,6 @@ pl_wipeall(VOID)
  *                                                                        *
  * Set every player's Action-Point pool to `ap` (sysop "give AP to all"). *
  * ---------------------------------------------------------------------- */
-#define PL_ALLMAX 128                /* cap for a bulk pass (ample for a door) */
-
 VOID EXPORT
 pl_ap_all(INT ap)
 {

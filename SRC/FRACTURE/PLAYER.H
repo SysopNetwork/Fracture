@@ -65,4 +65,8 @@ INT   pl_raidlist(const CHAR *selfid, INT mincamp);
 VOID  pl_wipeall(VOID);
 VOID  pl_ap_all(INT ap);
 
+/* Print the top `max` players by Fame (highest first), marking `selfid`, and   */
+/* return the caller's own 1-based rank (0 if not found). Used by the "F" board. */
+INT   pl_leaderboard(const CHAR *selfid, INT max);
+
 #endif /* FRACTURE_PLAYER_H */

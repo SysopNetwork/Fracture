@@ -57,6 +57,7 @@ VOID  do_research(struct fracplyr *p);/* show the research track              */
 VOID  do_advance(struct fracplyr *p); /* advance to the next research tier    */
 VOID  do_raidlist(struct fracplyr *p);/* list raidable rivals                 */
 VOID  do_raid(struct fracplyr *p);    /* raid a rival's camp                  */
+VOID  do_board(struct fracplyr *p);   /* Fame leaderboard                     */
 VOID  show_weather(VOID);            /* print today's weather/season line    */
 VOID  world_midnight(VOID);          /* midnight cleanup: evolve the world   */
 VOID  system_shutdown(VOID);         /* finish-up (system shutdown) routine  */
@@ -877,6 +878,38 @@ do_raid(struct fracplyr *p)
     }
 }
 
+/* Chart the tile at (x, y) if it is not already, so a founded or relocated *
+ * camp's home tile is never shown as "unknown".                            */
+static VOID
+chart_tile(INT x, INT y)
+{
+    struct fractile t;
+
+    wld_get(x, y, &t);
+    if (!(t.flags & TF_DISCOVERED)) {
+        t.flags |= TF_DISCOVERED;
+        wld_put(&t);
+    }
+}
+
+/* ---------------------------------------------------------------------- *
+ * do_board                                                               *
+ *                                                                        *
+ * The Fame leaderboard: the top explorers by Fame, the caller marked and *
+ * their own rank shown beneath. Reading only - costs no Action Points.   *
+ * ---------------------------------------------------------------------- */
+VOID EXPORT
+do_board(struct fracplyr *p)
+{
+    INT rank;
+
+    prf("\x1b[2J\x1b[H\n  \x1b[1;36m== TOP EXPLORERS ==\x1b[0;37m\n\n");
+    rank = pl_leaderboard(p->userid, 15);
+    if (rank > 0)
+        prf("\n  \x1b[0;37mYour Fame \x1b[1;33m%ld\x1b[0;37m   "
+            "Rank \x1b[1;37m#%d\x1b[0;37m\n", p->fame, rank);
+}
+
 /* ---------------------------------------------------------------------- *
  * module_main                                                            *
  *                                                                        *
@@ -904,6 +937,7 @@ module_main(VOID)
         me.camplvl = 0;                  /* start with a Tent              */
         me.started = 1;
         pl_write(&me);
+        chart_tile((INT)me.posx, (INT)me.posy);   /* home is known ground   */
     }
     else if (me.posx  >= wld_size() || me.posy  >= wld_size() ||
              me.campx >= wld_size() || me.campy >= wld_size()) {
@@ -921,6 +955,7 @@ module_main(VOID)
             me.posy = me.campy;
         }
         pl_write(&me);
+        chart_tile((INT)me.campx, (INT)me.campy);  /* re-founded home charted */
     }
 
     if (ap_free && me.actpts < daily_ap) {
@@ -1031,6 +1066,9 @@ module_main(VOID)
                    me.res[RES_WOOD], me.res[RES_STONE], me.res[RES_METAL],
                    me.res[RES_FOOD], me.res[RES_WATER]);
             show_weather();                  /* today's forecast on status   */
+        }
+        else if (sameas(margv[0], "f")) {
+            do_board(&me);                   /* Fame leaderboard             */
         }
         else if (sameas(margv[0], "!")) {
             if (sysop_allowed())             /* hidden: only holders of the  */
