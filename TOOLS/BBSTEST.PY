@@ -329,6 +329,16 @@ def main():
         check("weather/season line", ("Weather" in blob) and
               any(s in blob for s in ("Spring", "Summer", "Autumn", "Winter")))
         check("status screen", "EXPLORER STATUS" in blob or "Explorer" in screens.get("status", ""))
+        # Named text variables (TVARS.C): a failed registration strips the
+        # token (blank value) and an untranslated one leaks the raw name, so
+        # require real numbers where FRA_FAME / FRA_AP sit and no FRA_ text.
+        st = screens.get("status", "")
+        check("text variables render values",
+              re.search(r"Fame\s*:\s*\d", st) and
+              re.search(r"\d+ remaining today", st),
+              "status shows no numeric Fame/AP (text vars not translating?)")
+        check("no raw text-variable tokens", "FRA_" not in blob,
+              "raw FRA_ name reached the screen (host not translating tvars)")
         check("map / look screen", ("LOCATION" in blob) and ("unexplored" in blob))
         check("camp screen", "CAMP" in screens.get("camp", "").upper())
         check("crew screen", "CREW" in screens.get("crew", "").upper())
