@@ -168,7 +168,10 @@ init__fracture(VOID)
 
     /* summary <= 32 chars, detail <= 63 - both show on the audit trail     */
     shocst("Fracture's here. Act impressed.",
-           "Fracture v1.0.0 just joined the chat! Hold my juicebox.");
+           "Fracture v1.0.0 Hold my juicebox.");
+    /* the audit trail stamps its own date/time on this second line         */
+    shocst("By SysopNetwork",
+           "By SysopNetwork");
 }
 
 /* ---------------------------------------------------------------------- *

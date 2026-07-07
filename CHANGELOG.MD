@@ -60,7 +60,9 @@ value is a named text variable).
   day's condition and season (summary `Fracture's skies have turned`).
 - The boot-time audit-trail entry now has personality: the console summary reads
   `Fracture's here. Act impressed.` with detail
-  `Fracture v1.0.0 just joined the chat! Hold my juicebox.` (was just `Fracture`).
+  `Fracture v1.0.0 Hold my juicebox.` (was just `Fracture`). A second line,
+  `By SysopNetwork`, follows it (each line carries the audit trail's own
+  date/time stamp).
 - The midnight world-evolution audit entry got the same treatment: summary
   `Fracture reshuffled the world`, detail
   `N unexplored tile(s) reborn in the dark while you slept.` (the count keeps it
