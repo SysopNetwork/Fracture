@@ -24,7 +24,7 @@ value is a named text variable).
   argument list exactly. World size and the day's weather and season are
   computed live, so they are always current wherever the text mentions them.
   New source pair `TVARS.C`/`TVARS.H`; message names, types, and order are
-  unchanged. ADR 0015 records the design.
+  unchanged.
 - The main menu and the compact command bar were rebuilt as aligned grids. The
   full menu is now two columns (half its former height) and lists **U**
   Upgrade; the compact bar is a four-column grid with every tab starting at a
@@ -53,7 +53,7 @@ value is a named text variable).
   share one visual language. Message names, types, and argument order were
   preserved, so no code changed and no rebuild is required (the host recompiles
   the `.MSG` to `.MCV` at startup). The `.MSG` is now generated from
-  `TOOLS/GENMSG.PY`; ADR 0009 records the style. Sysops can still reword the
+  `TOOLS/GENMSG.PY`. Sysops can still reword the
   human-readable text.
 - The midnight cleanup routine now advances weather and seasons alongside the
   world's terrain evolution, and logs a second audit-trail line naming the new
@@ -117,7 +117,7 @@ value is a named text variable).
   the news. The two destructive commands require a literal `YES`/`CONFIRM` token,
   and names match case-insensitively. Admin output uses `prf` only, so no
   message-file entries were added. New data helpers `pl_wipeall`, `pl_ap_all`,
-  `pl_leaderboard`, `wld_reset`, and `hist_clear`. ADR 0014 records the design.
+  `pl_leaderboard`, `wld_reset`, and `hist_clear`.
 - Fame leaderboard: **F** shows the top explorers by Fame, the caller marked with
   their rank beneath. It reads the roster and sorts in memory, and costs no Action
   Points. Listed in both menus (the compact bar also now surfaces the existing
@@ -140,7 +140,7 @@ value is a named text variable).
   player sees a "RAIDED!" notice on their next login. No new data file (the raid
   counter reuses a spare record byte). Sysop options: `RADOPT` (on/off), `RADCOST`
   (Action Points per raid, default 5), `RADLOOT` (percent looted on a win, default
-  25). ADR 0013 records the model.
+  25).
 - Research track (`RESEARCH.C`/`.H`): a five-tier knowledge ladder (Untrained →
   Sharpened Tools → Field Survey → Logistics → Master Craft) that permanently
   improves how a player plays. Each tier raises gather yield (up to +100%) and, from
@@ -148,8 +148,7 @@ value is a named text variable).
   bench (the whole ladder with your tier marked and the next tier's cost); **K R**
   advances one tier for a scaling resource cost (Wood and Stone, Metal from tier 2).
   The tier is stored in a spare byte of the player record, so there is no new data
-  file and existing players start untrained. Sysop option `RSCHOPT` (on/off). ADR
-  0012 records the model.
+  file and existing players start untrained. Sysop option `RSCHOPT` (on/off).
 - Trading post (`MARKET.C`/`.H`): a server-wide exchange for turning resources into
   Fame and back. **M** shows the post — a sell and buy price per resource (each
   weighted by scarcity: Metal ×3, Food ×2, the rest ×1) and how much you hold;
@@ -159,7 +158,7 @@ value is a named text variable).
   Fame is now spendable and resources have a floor value. No new data file — trades
   settle at once against the acting player. Sysop options: `MKTOPT` (on/off),
   `MKTSELL` (base Fame per unit sold, default 2), `MKTBUY` (base Fame per unit
-  bought, default 3). ADR 0011 records the model.
+  bought, default 3).
 - Workers and passive production (`WORKER.C`/`.H`): players house a crew of NPC
   workers at their camp who produce resources on their own — one day's worth for
   each new day the player logs in. Five worker types each work one resource
@@ -170,7 +169,7 @@ value is a named text variable).
   output and the whole crew eats Food, so a lean larder or a heat wave bites into
   production. Crew rosters live in a fifth Btrieve file (`FRACWRK.DAT`, one record
   per player). Sysop options: `WRKOPT` (on/off), `WRKPROD` (units per worker per
-  day), `WRKFOOD` (Food per worker per day). ADR 0010 records the model.
+  day), `WRKFOOD` (Food per worker per day).
 - Weather and seasons (`WEATHER.C`/`.H`): one server-wide weather condition per
   day (Clear, Rain, Fog, Storm, Snow, Heat Wave), rolled at midnight and biased by
   a four-season cycle (Spring → Summer → Autumn → Winter). Weather is more than
@@ -180,12 +179,12 @@ value is a named text variable).
   and with the news (**H**). State lives in a fourth Btrieve file (`FRACWX.DAT`, a
   single record) and catches up lazily if a midnight was missed. Sysop options:
   `WXOPT` (master on/off, default YES) and `SEASLEN` (days per season, default 7,
-  1..90). ADR 0008 records the model.
+  1..90).
 - Arrival quips: returning players are greeted on entry with one of a dozen
   short, irreverent one-liners chosen at random (sysop-editable as `QUIP1`..`QUIP12`
   text blocks; add or reword freely). New explorers still get the first-time intro.
 - Initial project scaffolding: repository directory structure (`SRC/`, `DIST/`,
-  `DOCS/`, `DOCS/ADR/`, `TESTS/`, `TOOLS/`, `BUILD/`).
+  `TESTS/`, `TOOLS/`, `BUILD/`).
 - Project documentation: `README.MD`, `TECHNICAL.MD`, `BUILDING.MD`, `CHANGELOG.MD`.
 - MIT `LICENSE`.
 - `.gitignore` and `.gitattributes` covering Visual Studio/MSBuild artifacts,
@@ -209,7 +208,6 @@ value is a named text variable).
   outcome (mostly minor finds, occasional notable discoveries) that awards Fame
   and updates lifetime stats. A live **status** screen shows name, Fame, Action
   Points remaining, and exploration/discovery totals.
-- ADR 0002: player record shape and the lazy daily Action Point reset.
 - World map (`WORLD.C`/`.H`): a square tile grid in `FRACWLD.DAT` (Btrieve,
   keyed on a packed coordinate), generated once on first run with weighted
   terrain. Sysop-configurable size (`WLDSIZ` option, default 40, 8..64).
@@ -221,27 +219,23 @@ value is a named text variable).
 - Local map view (**L**): an ANSI minimap centered on the player showing charted
   terrain glyphs, unexplored tiles, and a legend. Status (**T**) now shows the
   player's coordinates.
-- ADR 0003: the world map model (coordinate packing, storage, generation).
 - Resources (`RESOURCE.C`/`.H`): a core set of five materials (Wood, Stone,
   Metal, Food, Water) gathered by searching tiles. Each terrain has a
   characteristic yield; counts are kept per player and shown on the status
-  screen. ADR 0004 records the resource model.
+  screen.
 - Camp system (`CAMP.C`/`.H`): each player has one camp, founded at the map
   center, that upgrades through six tiers (Tent → Cabin → Outpost → Settlement →
   Fort → Citadel). The camp tier sets per-resource storage capacity; gathering is
   capped to it. A camp screen (**C**) shows the tier, location, capacity, and the
   next upgrade cost; **U** spends resources to build the next tier and awards
-  Fame. Status shows the current camp and storage cap. ADR 0005 records the camp
-  and storage model.
+  Fame. Status shows the current camp and storage cap.
 - Server history and daily news (`HISTORY.C`/`.H`): a permanent, server-wide
   chronicle in `FRACHIST.DAT` (Btrieve, append-only). Charting an unexplored tile
   (a server-wide first discovery) and raising a camp to a new tier are recorded
   for every player. A news view (**H**) shows the most recent events newest-first,
-  making the shared world feel inhabited. ADR 0006 records the history and news
-  model.
+  making the shared world feel inhabited.
 - Daily world evolution: the module's midnight cleanup routine (`mcurou`) now runs
   during the nightly BBS cleanup and regenerates a sysop-configurable percentage
   (`REGENPCT` option, default 5, 0..100) of the tiles no player has charted yet,
   with fresh terrain. Charted ground, camps, and structures are preserved; setting
-  the option to 0 freezes the world. The result is logged to the audit trail. ADR
-  0007 records the model.
+  the option to 0 freezes the world. The result is logged to the audit trail.

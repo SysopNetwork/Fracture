@@ -252,7 +252,6 @@ Fracture/
 │   ├── STAT.PY            # Read-only status dump for the test accounts
 │   └── BBSTEST.INI.EXAMPLE
 ├── DIST/1.0.0/            # Deployable release files
-├── DOCS/ADR/              # Architecture decision records
 ├── TECHNICAL.MD           # Technical reference
 ├── BUILDING.MD            # Build, package and deploy guide
 ├── CHANGELOG.MD           # Release notes

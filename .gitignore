@@ -90,3 +90,6 @@ desktop.ini
 
 # --- Release zips (published as GitHub release assets, not committed) ---
 /DIST/*.zip
+
+# --- Internal design docs and ADRs (kept locally, never published) ---
+/DOCS/

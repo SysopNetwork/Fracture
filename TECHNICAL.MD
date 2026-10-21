@@ -58,8 +58,7 @@ module opens the compiled message file and emits entries by name:
   active message block.
 - `prfmsg()` formats a message into the user's output buffer; `outprf()` flushes
   it to the user.
-- Dynamic values in message text are **named text variables** (`TVARS.C`,
-  ADR 0015): the module registers each value as `FRA_<name>` via
+- Dynamic values in message text are **named text variables** (`TVARS.C`): the module registers each value as `FRA_<name>` via
   `register_textvar()`, and the host substitutes it wherever the name appears in
   the text. The sysop can move, repeat, or drop these tokens freely when
   rewording messages. The module fills a variable just before emitting a message
@@ -69,8 +68,7 @@ module opens the compiled message file and emits entries by name:
 
 A `.H` header maps message names to their numeric ids and is regenerated from the
 `.MSG` whenever messages change. The UI targets 80x24, drawn in a consistent shaded
-block-art ANSI style (CP437 `░▒▓█` banners, `▐▌` menu tabs, a fixed palette) recorded
-in ADR 0009.
+block-art ANSI style (CP437 `░▒▓█` banners, `▐▌` menu tabs, a fixed palette).
 
 `FRACTURE.MSG` is **generated** by `TOOLS/GENMSG.PY` — edit the generator, not the
 `.MSG` text, when changing screens in source control. (Sysops remain free to reword
@@ -130,8 +128,6 @@ content can be added without modifying existing systems:
 | `RAID.C/.H` | player raiding |
 | `SYSOP.C/.H` | hidden in-game sysop tools (`!`), gated by the BBS SYSOP key |
 
-Design decisions for each system are recorded as ADRs in `DOCS/ADR/`.
-
 ## 5. Configuration
 
 Every gameplay tunable is a standard MBBS configuration option declared in the
@@ -176,11 +172,10 @@ systems are expected to surface their balance parameters from the start.
 
 A hidden `!` command at the main prompt — available only to users holding the BBS
 **SYSOP** key, and invisible to everyone else — provides live administration:
-`! find` inspects a player record, `! set` edits its fields, `! ap` grants Action
+`! find` inspects a player record, `! set` edits its fields, `! ap` sets Action
 Points (to one player or `ALL`), `! wipe <name> YES` deletes a player, and
 `! reset CONFIRM` wipes all players, regenerates the world, and clears the news.
-Destructive commands require their literal confirmation token. ADR 0014 records the
-design.
+Destructive commands require their literal confirmation token.
 
 ---
 
