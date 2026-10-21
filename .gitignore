@@ -87,3 +87,6 @@ GAL*.OUT
 ~$*
 Thumbs.db
 desktop.ini
+
+# --- Release zips (published as GitHub release assets, not committed) ---
+/DIST/*.zip
